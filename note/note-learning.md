@@ -1,4 +1,4 @@
-# yudada
+# question-well
 
 - Review
   1. 用户中心项目: 适合新手入门，系统学习完整的项目开发流程和上线方法。
@@ -12,9 +12,13 @@
 
 
 
-- Rerence
+- Reference
 
-  [yupi github](https://github.com/liyupi/yudada)、[yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y)
+  [yupi github](https://github.com/liyupi/yudada), [yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y), [yupi note code-nav](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=),
+  
+  [zhipuAI](https://open.bigmodel.cn/), [xunfei spark](https://xinghuo.xfyun.cn/sparkapi), [Yu Smart](https://www.yucongming.com/), 
+  
+  [Taro 跨端开发框架](https://taro-docs.jd.com/docs/)、[Taro UI 组件库 (推荐 兼容)](https://taro-ui.jd.com/#/)
 
 
 
@@ -63,6 +67,8 @@
   
 
 
+
+### 业务梳理
 
 - 核心业务流程
 
@@ -159,11 +165,93 @@
 
 
 
+### 产品概念
+
+- 参考产品
+
+- MBTI
+
+  界面设计、业务流程
+
+  [16personalities](https://www.16personalities.com/ch)
+
+  ![Snipaste_2024-05-08_22-01-04](res/Snipaste_2024-05-08_22-01-04.png)
+
+  
+
+- MBTI实现方案 (总结)
+
+  核心组成：题目、用户答案、评分规则
+
+- 题目结构 (JSON) - 更灵活 排序
+
+  ```json
+  [
+      {
+          "title": "你通常更喜欢",
+          "options": [
+              {
+                  "result": "I",
+                  "value": "独自工作",
+                  "key": "A"
+              },
+              {
+                  "result": "E",
+                  "value": "与他人合作",
+                  "key": "B"
+              }
+          ]
+      }
+  ]
+  ```
+  
+  用户答案(JSON) - 按顺序匹配题目 不用完整传输题目 节省体积
+  
+  ```json
+  ["A", "A", "B"]
+  ```
+  
+  评分规则
+  
+  [Myers-Briggs Type Indicator](https://zh.wikipedia.org/wiki/%E9%82%81%E7%88%BE%E6%96%AF-%E5%B8%83%E9%87%8C%E6%A0%BC%E6%96%AF%E6%80%A7%E6%A0%BC%E5%88%86%E9%A1%9E%E6%B3%95): binary classification * 4
+  
+  
+
+
+
+- 小程序开发
+
+  小程序和网页开发 (一致性)
+
+  - 在线热更新、调试、版本兼容、打包上线
+  - 部署简单
+
+  小程序开发优点：
+
+  - 基于微信生态，易于传播分享
+  - 不让用户下载APP，快速打开
+
+  小程序开发痛点：
+
+  - 一些权限和功能必须要求企业号
+
+- 小程序开发的技术选型
+
+  [Taro 跨端开发框架](https://taro-docs.jd.com/docs/)、[Taro UI 组件库 (推荐 兼容)](https://taro-ui.jd.com/#/)、nut UI
+
+  React、TypeScript
+
+  [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
+
+  
+
+
+
 ## 环境搭建
 
 - 环境说明
 
-  JDK, MySQL 8.x, [Redis 5.x](https://github.com/zkteco-home/redis-windows/releases)
+  JDK(8, 11, 17), MySQL 8.x, [Redis 5.x](https://github.com/zkteco-home/redis-windows/releases)
 
   [nodejs18.x,](https://nodejs.org/en) npm 9.x
 
@@ -171,9 +259,234 @@
 
 
 
+### 项目初始化 (小程序)
+
+- 参考
+
+  [用这个方法开发小程序 video](https://www.bilibili.com/video/BV1vM4m1R7K3/)、[小程序开发指南 240327 note](https://www.code-nav.cn/course/1782335162700775426/section/1782342928001646593?type=#heading-0)
+
+  [Taro guide](https://taro-docs.jd.com/docs/GETTING-STARTED)
 
 
 
+- Taro guide
+
+  ```bash
+  cd /d/code2/java-code/yudada/
+  npm install -g @tarojs/cli
+  taro -V  # 3!!!
+  
+  taro init mbti-test-mini
+  ? 请输入项目介绍
+  ? 请选择框架 React
+  ? 是否需要使用 TypeScript ？ Yes
+  ? 请选择 CSS 预处理器（Sass/Less/Stylus） Sass
+  ? 请选择编译工具 Webpack5
+  ? 请选择包管理工具 npm
+  ? 请选择模板源 Gitee（最快）
+  ✔ 拉取远程模板仓库成功！
+  ? 请选择模板 taro-ui（使用 taro-ui 的模板）
+  
+  
+  npm install --force
+  npm run dev:weapp
+  
+  ```
+  
+- Configure the development specifications for the project
+
+  `eslint`, `typescript`: 校验js代码、提供语法提示的工具 (纠正编码习惯)
+
+  `prettier`: 代码美化、快速格式化代码工具
+
+  `settings` -> `eslint` -> `automatic ESLint configuration`
+
+  `settings` -> `prettier` -> `automatic prettier configuration`
+
+  .eslintrc 
+
+  ```
+  {
+    "extends": [
+      "taro/react"
+    ],
+    "rules": {
+      "react/jsx-uses-react": "off",
+      "react/react-in-jsx-scope": "off",
+      "jsx-quotes": "off"
+    }
+  }
+  
+  ```
+
+- To import Taro UI components globally ([reference](https://taro-ui.jd.com/#/docs/quickstart))
+
+  
+
+
+
+## 小程序开发
+
+- 小程序的配置信息
+
+  `project.config.json`：给小程序开发工具的
+
+  `app.config.ts`：项目对小程序的信息
+
+- 开发页面
+
+  路由注册 (`app.config.ts`)、复制已有页面；
+
+  定制开发 (页面 + 样式 + js逻辑交互)
+
+- 页面规划
+
+  主页、答题页面、结果页面
+
+  [图片生成 AI绘画](https://www.yucongming.com/draw)
+
+  ![Snipaste_2024-05-09_18-06-06](res/Snipaste_2024-05-09_18-06-06.png)
+
+- dir
+
+  ```bash
+  cd src/
+  mkdir -p assets/ components/GlobalFooter/ data/ utils/
+  
+  
+  ```
+
+  
+
+
+
+- 定位
+
+  题目都是固定的，不需要后端
+
+- 扩展
+
+  
+
+
+
+
+
+- 全局规范配置
+
+  React 函数式组件 (推荐)
+
+  ```react
+  export default () => {
+    return (
+      <View className="index">
+        <Text>User Center!</Text>
+  
+        <AtButton
+          type="primary"
+          onClick={() => {
+            Taro.navigateTo({
+              url: "/pages/index/index",
+            });
+          }}
+        >
+          跳转页面
+        </AtButton>
+      </View>
+    );
+  };
+  
+  ```
+
+  React 类组件 (像java 继承...)
+
+  ```react
+  export default class Index extends Component<PropsWithChildren> {
+    componentDidMount() {}
+  
+    componentWillUnmount() {}
+  
+    componentDidShow() {}
+  
+    componentDidHide() {}
+  
+    render() {
+      return (
+        <View className="index">
+          <Text>User Center!</Text>
+  
+          <AtButton
+            type="primary"
+            onClick={() => {
+              Taro.navigateTo({
+                url: "/pages/index/index",
+              });
+            }}
+          >
+            跳转页面
+          </AtButton>
+        </View>
+      );
+    }
+  }
+  
+  ```
+
+  
+
+
+
+### Home page (index)
+
+- index
+
+  页面：[背景图片(媒体)](https://taro-docs.jd.com/docs/components/media/image)、[文字标题](https://taro-ui.jd.com/#/docs/article)、[按钮](https://taro-ui.jd.com/#/docs/button)；[跳转跳转](https://taro-docs.jd.com/docs/router#%E8%B7%AF%E7%94%B1%E8%B7%B3%E8%BD%AC) (找组件 多丑都行)
+
+  样式：
+
+  交互：
+
+
+
+
+
+
+
+### Question page
+
+- doQuestion
+
+  页面：[单选框](https://taro-ui.jd.com/#/docs/radio)、
+
+  样式：
+
+  交互：
+
+
+
+上一题下一题 -> 改变题号 -> 题目内容的变化 (一个变量驱动另一个变量的变化 `useEffect`)
+
+查看结果 -> 携带答案到结果页面
+
+
+
+### Result page
+
+
+
+三个页面之间的跳转
+
+
+
+
+
+
+
+hand
+
+评分逻辑的实现
+
+AI Prompt 实现判题逻辑
 
 
 
@@ -228,7 +541,7 @@
 - 6 期：系统优化
 
   - 功能完善：统计分析模块、应用分享模块
-  - 性能优化:：SSE、Rxava 多线程、缓存(Redisson 分布式锁防止缓存击穿)、分库分表
+  - 性能优化：SSE、Rxava 多线程、缓存(Redisson 分布式锁防止缓存击穿)、分库分表
 
 - 7 期：系统优化
   - 业界主流幂等性设计
