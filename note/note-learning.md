@@ -411,6 +411,27 @@
   
   ```
 
+- 改造项目
+
+  全局替换：`springboot-init` -> `java-question-well`
+
+  全局替换：`springbootinit` -> `questionwell` (包名替换：`com.time1043.questionwell`)
+
+  移除不必要模块：ES、公众号微信、表格处理、定时任务 (删依赖 删除报错!!!)
+
+  pom.xml: elasticsearch, wx
+
+  application.yml: Elasticsearch, 
+
+  全局搜索：`elasticsearch`
+
+  ```
+  cd src/main/java/com/time1043/questionwell/
+  rm -rf wxmp/
+  ...
+  
+  ```
+
   
 
 
