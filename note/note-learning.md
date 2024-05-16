@@ -376,6 +376,53 @@
 
 
 
+### 后端项目初始化
+
+- 后端初始化模板 (重复功能不重复开发)
+
+  [完善企业级周边系统 2024-04-18](https://bcdh.yuque.com/staff-wpxfif/resource/yvmx2pim5tu6nqla#)、[后端 Spring Boot 万用模板使用](https://bcdh.yuque.com/staff-wpxfif/resource/chd1fh1knmrmh2fz)、[Java 后端万用项目模板](https://bcdh.yuque.com/staff-wpxfif/resource/gz47w7)
+
+  ```bash
+  cp -r springboot-init/ question-well/
+  cd question-well/
+  mv springboot-init/ java-question-well/
+  
+  mysql -uroot -p123456
+  create database questionwell;
+  
+  ```
+
+- 模板介绍
+
+  [reference](https://github.com/Time1043/gonna-oj/blob/main/README.md#%E5%90%8E%E7%AB%AF%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84) `README.md`
+
+  CodeGeneration
+
+- 准备依赖
+
+  依赖文件、配置文件
+
+  `MySQL 8.x` ✔, `Redis` (default off) ✔, `Elasticsearch` (default off), `COS` (do not affect)
+
+  ```bash
+  # http://localhost:8101/api/doc.html
+  # http://localhost:8101/api/doc.html#/default/user-controller/userRegisterUsingPOST
+  # http://localhost:8101/api/doc.html#/default/user-controller/userLoginUsingPOST
+  
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
 ## 小程序开发
 
 - 小程序的配置信息
@@ -1050,6 +1097,465 @@
 - 扩展
 
   [Reference](http://sssch.net/ArticleDetail.aspx?ArticleID=13188130318) 
+
+
+
+
+
+## 后端开发
+
+### 功能模块梳理 
+
+- 用户模块
+
+  注册、登录 `P0`
+
+  管理用户 - 增删改查 (仅管理员) `P1`
+
+- 应用模块
+
+  创建应用 `P0`、修改应用、删除应用 `P1`、
+
+  查看应用列表、查看应用详情 `P0`、查看自己创建的应用 `P1`、
+
+  管理应用 - 增删改查 (仅管理员) `P0`
+
+  审核发布和下架应用 (仅管理员) `P0`
+
+  应用分享 (扫码查看) `P2`
+
+- 题目模块
+
+  创建题目 (题目 选项 得分设置) `P0`、修改题目、删除题目 `P1`、
+
+  管理题目 - 增删改查 (仅管理员) `P1`、 
+
+  AI生成题目 `P1`
+
+- 评分模块
+
+  创建评分结果 `P0`、修改评分结果、删除评分结果 `P1`、
+
+  根据回答计算评分结果 (多种评分策略)
+
+  - 自定义规则评分 (测评分类 考试得分) `P0`
+  - AI评分 `P1`
+
+  管理评分结果 - 增删改查 (仅管理员) `P1`
+
+- 回答模块
+
+  提交回答 (创建)、查看某次回答的评分结果 `P0`、查看自己提交的回答列表 `P1`、
+
+  管理回答 - 增删改查 (仅管理员) `P1`
+
+- 统计分析模块
+
+  应用评分结果分析和查看 `P2`
+
+  
+
+
+
+- 关注核心业务流程
+
+  1. 用户：注册 -> 登录
+  2. 用户：创建应用 -> 创建题目 (题目 选项 得分) -> 创建评分规则 (评分策略 评分结果)
+  3. 管理员：管理应用、审核发布下架应用
+  4. 用户：查看和检索应用列表，进入应用详情页，在线答题并提交回答
+  5. 经过评分模块计算后，用户可查看本次评分结果
+
+  ![Snipaste_2024-05-16_10-10-24](res/Snipaste_2024-05-16_10-10-24.png)
+
+  
+
+
+
+- 确定需求优先级
+
+  `P0` 为核心，非做不可
+
+  `P1` 为重点功能，最好做
+
+  `P2` 为实用功能，有空就做
+
+  `P3` 可做可不做，时间充裕再做
+
+  ![Snipaste_2024-05-16_10-13-41](res/Snipaste_2024-05-16_10-13-41.png)
+
+
+
+
+
+### 库表设计
+
+- 对应功能梳理的模块 (统计模块 稍后)
+
+  模块：用户模块、应用模块；题目模块、评分模块、回答模块
+
+  库表：用户表、应用表；题目表、评分结果表、用户答题记录表
+
+  ```bash
+  # create_table.sql  init_data.sql
+  
+  mysql -uroot -p123456
+  
+  show databases;
+  create database questionwell;
+  use questionwell;
+  
+  ```
+
+  
+
+
+
+- 用户表
+
+  ```sql
+  -- 用户表
+  create table if not exists user
+  (
+      id           bigint auto_increment comment 'id' primary key,
+      userAccount  varchar(256)                           not null comment '账号',
+      userPassword varchar(512)                           not null comment '密码',
+      
+      unionId      varchar(256)                           null comment '微信开放平台id',
+      mpOpenId     varchar(256)                           null comment '公众号openId',
+      
+      userName     varchar(256)                           null comment '用户昵称',
+      userAvatar   varchar(1024)                          null comment '用户头像',
+      userProfile  varchar(512)                           null comment '用户简介',
+      
+      userRole     varchar(256) default 'user'            not null comment '用户角色：user/admin/ban',
+      createTime   datetime     default CURRENT_TIMESTAMP not null comment '创建时间',
+      updateTime   datetime     default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+      isDelete     tinyint      default 0                 not null comment '是否删除',
+      index idx_unionId (unionId)
+  ) comment '用户' collate = utf8mb4_unicode_ci;
+  ```
+
+- 应用表
+
+  重点是 `appType` 和 `scoringStrategy`
+
+  加索引 (最容易被用户作为搜索条件) `appName` 
+
+  ```sql
+  -- 应用表
+  create table if not exists app
+  (
+      id              bigint auto_increment comment 'id' primary key,
+      appName         varchar(128)                       not null comment '应用名',
+      appDesc         varchar(2048)                      null comment '应用描述',
+      appIcon         varchar(1024)                      null comment '应用图标',
+      
+      appType         tinyint  default 0                 not null comment '应用类型（0-得分类，1-测评类）',
+      scoringStrategy tinyint  default 0                 not null comment '评分策略（0-自定义，1-AI）',
+      
+      reviewStatus    int      default 0                 not null comment '审核状态：0-待审核, 1-通过, 2-拒绝',
+      reviewMessage   varchar(512)                       null comment '审核信息',
+      reviewerId      bigint                             null comment '审核人 id',
+      reviewTime      datetime                           null comment '审核时间',
+      
+      userId          bigint                             not null comment '创建用户 id',
+      createTime      datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+      updateTime      datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+      isDelete        tinyint  default 0                 not null comment '是否删除',
+      index idx_appName (appName)
+  ) comment '应用' collate = utf8mb4_unicode_ci;
+  ```
+
+  通用审核字段
+
+  ```sql
+      reviewStatus    int      default 0                 not null comment '审核状态：0-待审核, 1-通过, 2-拒绝',
+      reviewMessage   varchar(512)                       null comment '审核信息',
+      reviewerId      bigint                             null comment '审核人 id',
+      reviewTime      datetime                           null comment '审核时间',
+  ```
+
+  
+
+
+
+- 题目表
+
+  **每个应用**对应**一个题目表的记录**，使用 `questionContent` 这一JSON字段，整体更新和维护该应用的题目列表、选项信息
+
+  好处：排序题号更改 (json数据更改 容易比 数据库更新order字段)、创建应用基本信息 和 添加具体题目 在业务上是分开的
+
+  ```sql
+  -- 题目表
+  create table if not exists question
+  (
+      id              bigint auto_increment comment 'id' primary key,
+      questionContent text                               null comment '题目内容（json格式）',
+      
+      appId           bigint                             not null comment '应用 id',
+      userId          bigint                             not null comment '创建用户 id',
+      
+      createTime      datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+      updateTime      datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+      isDelete        tinyint  default 0                 not null comment '是否删除',
+      index idx_appId (appId)
+  ) comment '题目' collate = utf8mb4_unicode_ci;
+  ```
+
+  questionContent.json  (注意区分 `result` 和 `score` 分别用于统计两种不同类型的结果)
+
+  ```json
+  [
+      {
+          "options": [
+              {
+                  "result": "I",  // 若测评类 则用result来保存答案属性
+                  "score": 1,  // 若得分类 则用score来设置本题分数
+                  "value": "A选项",  // 选项内容
+                  "key": "A"  // 选项key
+              },
+              {
+                  "result": "E",  // 若测评类 则用result来保存答案属性
+                  "score": 0, 
+                  "value": "B选项",  
+                  "key": "B"  
+              }
+          ],
+          "title": "题目..."
+      }
+  ]
+  ```
+
+- 评分结果表
+
+  用户提交答案后，会获得一定的回答评定 (例如ISTJ之类的)，评分结果表就是存储这些数据的表
+
+  ```sql
+  -- 评分结果表
+  create table if not exists scoring_result
+  (
+      id               bigint auto_increment comment 'id' primary key,
+      resultName       varchar(128)                       not null comment '结果名称，如物流师',
+      resultDesc       text                               null comment '结果描述',
+      resultPicture    varchar(1024)                      null comment '结果图片',
+      
+      resultProp       varchar(128)                       null comment '结果属性集合 JSON，如 [I,S,T,J]',
+      resultScoreRange int                                null comment '结果得分范围，如 80，表示 80及以上的分数命中此结果',
+      
+      appId            bigint                             not null comment '应用 id',
+      userId           bigint                             not null comment '创建用户 id',
+      
+      createTime       datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+      updateTime       datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+      isDelete         tinyint  default 0                 not null comment '是否删除',
+      index idx_appId (appId)
+  ) comment '评分结果' collate = utf8mb4_unicode_ci;
+  ```
+
+  不同类型的应用使用不同的字段，测评类用 `resultProp`，得分类用 `resultScoreRange`
+
+  测评类应用  resultProp.json (结果属性集合)
+
+  ```json
+  ["I", "S", "T", "J"]
+  ```
+
+  得分类应用  默认resultScoreRange字段的规则为 “>=设定的分数 则命中对应的result”
+
+  ```sql
+  INSERT INTO scoring_result (id, resultName, resultDesc, resultPicture, resultProp, resultScoreRange, createTime, updateTime, isDelete, appId, userId) VALUES 
+  (17, '首都知识大师', '你真棒棒哦，首都知识非常出色！', null, null, 9, '2024-04-25 15:05:44', '2024-05-09 12:28:21', 0, 2, 1), 
+  (18, '地理小能手！', '你对于世界各国的首都了解得相当不错，但还有一些小地方需要加强哦！', null, null, 7, '2024-04-25 15:05:44', '2024-05-09 12:28:21', 0, 2, 1), 
+  (19, '继续加油！', '还需努力哦', null, null, 0, '2024-04-25 15:05:44', '2024-05-09 12:28:21', 0, 2, 1);
+  
+  ```
+
+- 用户答题记录表
+
+  ```sql
+  -- 用户答题记录表
+  create table if not exists user_answer
+  (
+      id              bigint auto_increment primary key,
+      appId           bigint                             not null comment '应用 id',
+      appType         tinyint  default 0                 not null comment '应用类型（0-得分类，1-角色测评类）',
+      scoringStrategy tinyint  default 0                 not null comment '评分策略（0-自定义，1-AI）',
+      
+      choices         text                               null comment '用户答案（JSON 数组）',
+      
+      resultId        bigint                             null comment '评分结果 id',
+      resultName      varchar(128)                       null comment '结果名称，如物流师',
+      resultDesc      text                               null comment '结果描述',
+      resultPicture   varchar(1024)                      null comment '结果图标',
+      resultScore     int                                null comment '得分',
+      
+      userId          bigint                             not null comment '用户 id',
+      
+      createTime      datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+      updateTime      datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+      isDelete        tinyint  default 0                 not null comment '是否删除',
+      index idx_appId (appId),
+      index idx_userId (userId)
+  ) comment '用户答题记录' collate = utf8mb4_unicode_ci;
+  
+  ```
+
+  Q1：为什么要有冗余字段？
+
+  `resultId`; `resultName`, `resultDesc`, `resultPicture`, `resultScore`
+
+  因为回答记录一旦设置，几乎不会更改；便于查询，不用联表，节约开发成本
+
+  还有可能通过异步的方式、或题目答案没提交 (只答到一半)，先临时保存回答记录
+
+  Q2：`resultId` 可能为空
+
+  因为AI分析策略不会从 结果表 中选取结果
+
+  还有可能通过异步的方式、或题目答案没提交 (只答到一半)，先临时保存回答记录
+
+  Q3：choices.json (题目选项的key数组)
+
+  只存储选项的优点，可以节约存储空间
+
+  但缺点是，应用的题目如果发生修改，就对应不上了
+
+  ```json
+  ["A", "B", "C"]
+  ```
+
+  可以更严谨一些，对应题目的id (或题目编号 题目的key)
+
+  ```json
+  {
+      1: "A",
+      2: "B"
+  }
+  ```
+
+  
+
+
+
+## 后端开发基础 (增删改查)
+
+- 总览：5 table 最基础的增删改查，不包含复杂的业务逻辑
+
+  数据库访问层 代码生成 `MyBatis-X`
+
+  业务逻辑层 代码生成 `CodeGenerator` (Controller, Service 接口和实现类, 数据模型包装类和枚举类)
+
+  数据模型开发
+
+  接口开发
+
+  服务开发
+
+  Swagger接口文档测试
+
+
+
+
+
+## 后端核心业务
+
+- 总览
+
+  应用审核功能
+
+  评分模块实现 (策略接口 两种策略实现 全局执行器) 
+
+  回答模块
+
+  控制应用可见范围
+
+
+
+
+
+
+
+
+
+### 扩展思路
+
+
+
+
+
+
+
+
+
+
+
+## 前端开发
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
