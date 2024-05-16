@@ -1,11 +1,10 @@
-import { Image, View } from "@tarojs/components";
-import { AtButton } from "taro-ui";
-
-import "./index.scss";
-// eslint-disable-next-line import/first
+import {Image, View} from "@tarojs/components";
+import {AtButton} from "taro-ui";
 import Taro from "@tarojs/taro";
-import headerBg from "../../assets/headerBg.png";
+
 import GlobalFooter from "../../components/GlobalFooter";
+import headerBg from "../../assets/headerBg.png";
+import "./index.scss";
 
 /**
  * Home Page

@@ -1,24 +1,31 @@
-import { Image, View } from "@tarojs/components";
-
-import "./index.scss";
-// eslint-disable-next-line import/first
-import headerBg from "../../assets/headerBg.png";
-import GlobalFooter from "../../components/GlobalFooter";
-// eslint-disable-next-line import/first
-import { AtButton } from "taro-ui";
-// eslint-disable-next-line import/first
+import {Image, View} from "@tarojs/components";
+import {AtButton} from "taro-ui";
 import Taro from "@tarojs/taro";
+
+import {getBestQuestionResult} from "../../utils/bizUtils";
+import GlobalFooter from "../../components/GlobalFooter";
 import questions from "../../data/questions.json";
 import questionResults from "../../data/question_results.json";
-// import {getBestQuestionResult} from "../../utils/bizUtils";
+import headerBg from "../../assets/headerBg.png";
+import "./index.scss";
 
 /**
  * Result Page
  */
 export default () => {
+  // from doQuestion page
   const answerList = Taro.getStorageSync("answerList");
-  // const result = getBestQuestionResult(answerList);
-  const result = questionResults[0];
+  // error
+  if (!answerList || answerList.length < 1) {
+    Taro.showToast({
+      title: "answerList is empty",
+      icon: "error",
+      duration: 3000,
+    });
+  }
+
+  // get best question result
+  const result = getBestQuestionResult(answerList, questions, questionResults);
 
   return (
     <View className="resultPage">

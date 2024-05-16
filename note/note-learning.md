@@ -18,7 +18,7 @@
   
   [zhipuAI](https://open.bigmodel.cn/), [xunfei spark](https://xinghuo.xfyun.cn/sparkapi), [Yu Smart](https://www.yucongming.com/), 
   
-  [Taro 跨端开发框架](https://taro-docs.jd.com/docs/)、[Taro UI 组件库 (推荐 兼容)](https://taro-ui.jd.com/#/)
+  [Taro](https://taro-docs.jd.com/docs/)、[Taro UI](https://taro-ui.jd.com/#/)
 
 
 
@@ -182,8 +182,16 @@
 - MBTI实现方案 (总结)
 
   核心组成：题目、用户答案、评分规则
+  
+  
 
-- 题目结构 (JSON) - 更灵活 排序
+
+
+- 题目结构 (JSON) 
+
+  优点：相比与 拿选项作为key，结构更清晰、更易于理解和扩展、前后端都可以声明类型 (更灵活 排序)
+
+  缺点：占用空间，可以进行数据预处理
 
   ```json
   [
@@ -204,17 +212,59 @@
       }
   ]
   ```
-  
-  用户答案(JSON) - 按顺序匹配题目 不用完整传输题目 节省体积
-  
+
+- 用户答案(JSON) 
+
+  优点：按顺序匹配题目 不用完整传输题目 节省体积
+
   ```json
   ["A", "A", "B"]
   ```
-  
-  评分规则
-  
+
+- 评分规则!!!
+
   [Myers-Briggs Type Indicator](https://zh.wikipedia.org/wiki/%E9%82%81%E7%88%BE%E6%96%AF-%E5%B8%83%E9%87%8C%E6%A0%BC%E6%96%AF%E6%80%A7%E6%A0%BC%E5%88%86%E9%A1%9E%E6%B3%95): binary classification * 4
+
+  每个结果都有一个 resultProp，是一个元素不重复的数组 (属性集合)，里面的内容和题目选项的result字段匹配
+
+  ```
+  例如说
   
+  用户第一题选A，对应属性是I；那么遍历16中结果人格，若人格包含I，则该人格就+1分，不包含则不得分
+  
+  遍历完所有题目，就得出16种人格的得分，得分最高的人格为最终结果
+  
+  ```
+
+- 评分结果 (16种人格)
+
+  ```json
+  [
+    {
+      "resultProp": [
+        "I",
+        "S",
+        "T",
+        "J"
+      ],
+      "resultDesc": "忠诚可靠，被公认为务实，注重细节。",
+      "resultPicture": "icon_url_istj",
+      "resultName": "ISTJ（物流师）"
+    },
+    {
+      "resultProp": [
+        "I",
+        "S",
+        "F",
+        "J"
+      ],
+      "resultDesc": "善良贴心，以同情心和责任为特点。",
+      "resultPicture": "icon_url_isfj",
+      "resultName": "ISFJ（守护者）"
+    },
+  ]
+  ```
+
   
 
 
@@ -289,7 +339,8 @@
   
   
   npm install --force
-  npm run dev:weapp
+  npm run dev:weapp  # 开发
+  npm run build:weapp  # 构建发布 (打包优化压缩)
   
   ```
   
@@ -333,6 +384,8 @@
 
   `app.config.ts`：项目对小程序的信息
 
+
+
 - 开发页面
 
   路由注册 (`app.config.ts`)、复制已有页面；
@@ -350,31 +403,17 @@
 - dir
 
   ```bash
-  cd src/
-  mkdir -p assets/ components/GlobalFooter/ data/ utils/
+  touch types/custom.d.ts
   
+  cd src/ && mkdir -p assets/ components/GlobalFooter/ data/ utils/
   
   ```
-
+  
   
 
 
 
-- 定位
-
-  题目都是固定的，不需要后端
-
-- 扩展
-
-  
-
-
-
-
-
-- 全局规范配置
-
-  React 函数式组件 (推荐)
+- React 函数式组件 (推荐)
 
   ```react
   export default () => {
@@ -397,7 +436,7 @@
   };
   
   ```
-
+  
   React 类组件 (像java 继承...)
 
   ```react
@@ -431,68 +470,586 @@
   }
   
   ```
+  
+  
+
+
+
+### 三个简单页面
+
+- index
+
+  页面：[背景图片(媒体)](https://taro-docs.jd.com/docs/components/media/image)、[文字标题](https://taro-ui.jd.com/#/docs/article)、[按钮](https://taro-ui.jd.com/#/docs/button)；(找组件 多丑都行)
+
+- doQuestion
+
+  页面：[单选框](https://taro-ui.jd.com/#/docs/radio)、...
+
+  ```
+  上一题下一题 -> 改变题号 -> 题目内容的变化 (一个变量驱动另一个变量的变化 `useEffect`)
+  
+  查看结果 -> 携带答案到结果页面
+  
+  ```
+
+- result
+
+  页面 (像index)
+
+- 三个页面之间的跳转
+
+  [路由跳转](https://taro-docs.jd.com/docs/router#%E8%B7%AF%E7%94%B1%E8%B7%B3%E8%BD%AC)  `Taro.navigateTo` (页面的叠加), `Taro.reLaunch` (关闭历史页面 打开新页面)
 
   
 
 
 
-### Home page (index)
+- 三个简单页面
 
 - index
 
-  页面：[背景图片(媒体)](https://taro-docs.jd.com/docs/components/media/image)、[文字标题](https://taro-ui.jd.com/#/docs/article)、[按钮](https://taro-ui.jd.com/#/docs/button)；[跳转跳转](https://taro-docs.jd.com/docs/router#%E8%B7%AF%E7%94%B1%E8%B7%B3%E8%BD%AC) (找组件 多丑都行)
-
-  样式：
-
-  交互：
-
-
-
-
-
-
-
-### Question page
+  ```tsx
+  import { Image, View } from "@tarojs/components";
+  import { AtButton } from "taro-ui";
+  
+  import "./index.scss";
+  // eslint-disable-next-line import/first
+  import Taro from "@tarojs/taro";
+  import headerBg from "../../assets/headerBg.png";
+  import GlobalFooter from "../../components/GlobalFooter";
+  
+  /**
+   * Home Page
+   */
+  export default () => {
+    return (
+      <View className="indexPage">
+        <View className="at-article__h1 title">MBTI Personality Test</View>
+        <View className="at-article__h2 subTitle">
+          In just 2 minutes, you can describe who you are and your personality
+          traits very accurately
+        </View>
+  
+        <AtButton
+          type="primary"
+          className="enterBtn"
+          onClick={() => {
+            Taro.navigateTo({
+              url: "/pages/doQuestion/index",
+            });
+          }}
+        >
+          Start Test
+        </AtButton>
+  
+        <Image src={headerBg} mode="widthFix" className="headerBg" />
+  
+        <GlobalFooter />
+      </View>
+    );
+  };
+  
+  ```
 
 - doQuestion
 
-  页面：[单选框](https://taro-ui.jd.com/#/docs/radio)、
+  ```tsx
+  import { View } from "@tarojs/components";
+  
+  import "./index.scss";
+  // eslint-disable-next-line import/first
+  import GlobalFooter from "../../components/GlobalFooter";
+  // eslint-disable-next-line import/first
+  import { AtButton, AtRadio } from "taro-ui";
+  // eslint-disable-next-line import/first
+  import { useEffect, useState } from "react";
+  import questions from "../../data/questions.json";
+  import Taro from "@tarojs/taro";
+  
+  /**
+   * Home Page
+   */
+  export default () => {
+    // Current title sequence number (starts from 1)
+    const [current, setCurrent] = useState<number>(1);
+  
+    // const [currentQuestion, setCurrentQuestion] = useState<Question>(questions[0]);
+    const currentQuestion = questions[0];
+    const questionOptions = currentQuestion.options.map((option) => {
+      return { label: `${option.key}. ${option.value}`, value: option.key };
+    });
+  
+    const [currentAnswer, setCurrentAnswer] = useState<string>();
+    const [answerList] = useState<string[]>([]); // history, submit
+  
+    // Current title sequence number -> current question
+    useEffect(() => {
+      setCurrentQuestion(questions[current - 1]);
+      setCurrentAnswer(answerList[current - 1]);
+    }, [current]);
+  
+    return (
+      <View className="doQuestionPage">
+        {/*{JSON.stringify(answerList)}*/}
+        <View className="at-article__h2 subTitle">
+          {current}. {currentQuestion.title}
+        </View>
+  
+        <View className="options-wrapper">
+          <AtRadio
+            options={questionOptions}
+            value={currentAnswer}
+            onClick={(value) => {
+              setCurrentAnswer(value);
+              answerList[current - 1] = value; // record
+            }}
+          />
+        </View>
+  
+        {current < questions.length && (
+          <AtButton
+            type="primary"
+            className="controlBtn"
+            disabled={!currentAnswer}
+            onClick={() => setCurrent(current + 1)}
+          >
+            Next Question
+          </AtButton>
+        )}
+  
+        {current === questions.length && (
+          <AtButton
+            type="primary"
+            className="controlBtn"
+            disabled={!currentAnswer}
+            onClick={() => {
+              // send data
+  
+              // route to result page
+              Taro.navigateTo({
+                url: "/pages/result/index",
+              });
+            }}
+          >
+            View Final Results
+          </AtButton>
+        )}
+  
+        {current > 1 && (
+          <AtButton
+            type="primary"
+            className="controlBtn"
+            onClick={() => setCurrent(current - 1)}
+          >
+            Previous Question
+          </AtButton>
+        )}
+  
+        <GlobalFooter />
+      </View>
+    );
+  };
+  
+  ```
 
-  样式：
+- result
 
-  交互：
+  ```tsx
+  import { Image, View } from "@tarojs/components";
+  
+  import "./index.scss";
+  // eslint-disable-next-line import/first
+  import headerBg from "../../assets/headerBg.png";
+  import GlobalFooter from "../../components/GlobalFooter";
+  // eslint-disable-next-line import/first
+  import { AtButton } from "taro-ui";
+  // eslint-disable-next-line import/first
+  import Taro from "@tarojs/taro";
+  import questions from "../../data/questions.json";
+  import questionResults from "../../data/question_results.json";
+  // import {getBestQuestionResult} from "../../utils/bizUtils";
+  
+  /**
+   * Result Page
+   */
+  export default () => {
+    const answerList = Taro.getStorageSync("answerList");
+    // const result = getBestQuestionResult(answerList);
+    const result = questionResults[0];
+  
+    return (
+      <View className="resultPage">
+        <View className="at-article__h1 title">{result.resultName}</View>
+        <View className="at-article__h2 subTitle">{result.resultDesc}</View>
+  
+        <AtButton
+          type="primary"
+          className="enterBtn"
+          onClick={() =>
+            Taro.reLaunch({
+              url: "/pages/index/index",
+            })
+          }
+        >
+          Back to Home Page
+        </AtButton>
+  
+        <Image src={headerBg} mode="widthFix" className="headerBg" />
+  
+        <GlobalFooter />
+      </View>
+    );
+  };
+  
+  ```
+  
+  
 
 
 
-上一题下一题 -> 改变题号 -> 题目内容的变化 (一个变量驱动另一个变量的变化 `useEffect`)
+- 类型约束
 
-查看结果 -> 携带答案到结果页面
+  types/custom.d.ts
 
+  ```typescript
+  interface QuestionOption<T extends string = string> {
+    result: T;
+    value: string;
+    key: T;
+  }
+  
+  interface Question<T extends string = string> {
+    title: string;
+    options: QuestionOption<T>[];
+  }
+  
+  ```
 
-
-### Result page
-
-
-
-三个页面之间的跳转
-
-
-
-
-
-
-
-hand
-
-评分逻辑的实现
-
-AI Prompt 实现判题逻辑
+  
 
 
 
+### 评分逻辑
+
+- 实现判题逻辑 (AI Prompt)
+
+  请根据我下面的题目评分算法原理，帮我用js获取到得分最高的题目评分结果，要求算法清晰易懂，性能要求高，多补充一些注释。
+
+  用户提交的答案 answerList:["A"]
+
+  题目列表 questions: 
+
+  ```json
+  [
+      {
+          "title": "你通常更喜欢",
+          "options": [
+              {
+                  "result": "I",
+                  "value": "独自工作",
+                  "key": "A"
+              },
+              {
+                  "result": "E",
+                  "value": "与他人合作",
+                  "key": "B"
+              }
+          ]
+      }
+  ]
+  ```
+
+  题目评分结果 question_results: 
+
+  ```json
+  [
+    {
+      "resultProp": [
+        "I",
+        "S",
+        "T",
+        "J"
+      ],
+      "resultDesc": "忠诚可靠，被公认为务实，注重细节。",
+      "resultPicture": "icon_url_istj",
+      "resultName": "ISTJ（物流师）"
+    },
+  ]
+  ```
+
+  评分原理：答案数组的每个元素和题目数组中每个元素的某个选项的key对应，从而获取对应result属性；题目评分结果的resultProp集合中如果包含该属性，就+1分，最后计算哪个评分结果(question_result)分数最高
+
+  
 
 
 
+- 评分逻辑的实现
+
+  src/utils/bizUtils.ts
+
+  ```typescript
+  /**
+   * 获取最佳题目评分结果
+   * @param answerList
+   * @param questions
+   * @param question_results
+   */
+  
+  export function getBestQuestionResult(answerList, questions, question_results) {
+    // 初始化一个对象，用于存储每个选项的计数
+    const optionCount = {};
+  
+    // 用户选择 A, B, C
+    // 对应 result：I, I, J
+    // optionCount[I] = 2; optionCount[J] = 1
+  
+    // 遍历题目列表
+    for (const question of questions) {
+      // 遍历答案列表
+      for (const answer of answerList) {
+        // 遍历题目中的选项
+        for (const option of question.options) {
+          // 如果答案和选项的key匹配
+          if (option.key === answer) {
+            // 获取选项的result属性
+            const result = option.result;
+  
+            // 如果result属性不在optionCount中，初始化为0
+            if (!optionCount[result]) {
+              optionCount[result] = 0;
+            }
+  
+            // 在optionCount中增加计数
+            optionCount[result]++;
+          }
+        }
+      }
+    }
+  
+    // 初始化最高分数和最高分数对应的评分结果
+    let maxScore = 0;
+    let maxScoreResult = question_results[0];
+  
+    // 遍历评分结果列表
+    for (const result of question_results) {
+      // 计算当前评分结果的分数
+      const score = result.resultProp.reduce((count, prop) => {
+        return count + (optionCount[prop] || 0);
+      }, 0);
+  
+      // 如果分数高于当前最高分数，更新最高分数和最高分数对应的评分结果
+      if (score > maxScore) {
+        maxScore = score;
+        maxScoreResult = result;
+      }
+    }
+  
+    // 返回最高分数和最高分数对应的评分结果
+    return maxScoreResult;
+  }
+  
+  // Test (example)
+  const answerList = ["B","B","B","A"];
+  const questions = [
+    {
+      title: "你通常更喜欢",
+      options: [
+        {
+          result: "I",
+          value: "独自工作",
+          key: "A",
+        },
+        {
+          result: "E",
+          value: "与他人合作",
+          key: "B",
+        },
+      ],
+    },
+    {
+      options: [
+        {
+          result: "S",
+          value: "喜欢有结构和常规",
+          key: "A",
+        },
+        {
+          result: "N",
+          value: "喜欢自由和灵活性",
+          key: "B",
+        },
+      ],
+      title: "对于日常安排",
+    },
+    {
+      options: [
+        {
+          result: "P",
+          value: "首先考虑可能性",
+          key: "A",
+        },
+        {
+          result: "J",
+          value: "首先考虑后果",
+          key: "B",
+        },
+      ],
+      title: "当遇到问题时",
+    },
+    {
+      options: [
+        {
+          result: "T",
+          value: "时间是一种宝贵的资源",
+          key: "A",
+        },
+        {
+          result: "F",
+          value: "时间是相对灵活的概念",
+          key: "B",
+        },
+      ],
+      title: "你如何看待时间",
+    },
+  ];
+  const question_results = [
+    {
+      resultProp: ["I", "S", "T", "J"],
+      resultDesc: "忠诚可靠，被公认为务实，注重细节。",
+      resultPicture: "icon_url_istj",
+      resultName: "ISTJ（物流师）",
+    },
+    {
+      resultProp: ["I", "S", "F", "J"],
+      resultDesc: "善良贴心，以同情心和责任为特点。",
+      resultPicture: "icon_url_isfj",
+      resultName: "ISFJ（守护者）",
+    },
+  ];
+  
+  console.log(getBestQuestionResult(answerList, questions, question_results));
+  
+  ```
+
+  测试
+
+  ```bash
+  cd src/utils/
+  node bizUtils.ts 
+  
+  ```
+
+  
+
+
+
+
+
+
+
+### 页面间的数据传递
+
+- 需求：题目结果页面 需要得到 做题页面用户选择的答案列表，才能进行评分。
+
+  方法1：[url params](https://taro-docs.jd.com/docs/apis/route/navigateTo) 比如：`result?answerList=[A,B,C]`
+
+  方法 2：[全局状态](https://taro-docs.jd.com/docs/context#contextprovider) (比较复杂的前端)
+
+  方法 3：[本地数据存储](https://taro-docs.jd.com/docs/apis/storage/setStorageSync) (推荐 较为简单)
+
+  
+
+
+
+- doQuestion -> result
+
+  doQuestion `setStorageSync` 
+  
+  ```tsx
+        {current === questions.length && (
+          <AtButton
+            type="primary"
+            className="controlBtn"
+            disabled={!currentAnswer}
+            onClick={() => {
+              // send data
+              Taro.setStorageSync("answerList", answerList);
+              // route to result page
+              Taro.navigateTo({
+                url: "/pages/result/index",
+              });
+            }}
+          >
+            View Final Results
+          </AtButton>
+        )}
+  ```
+  
+  result `getStorageSync` [Toast](https://taro-docs.jd.com/docs/apis/ui/interaction/showToast)
+  
+  ```tsx
+  export default () => {
+    // from doQuestion page
+    const answerList = Taro.getStorageSync("answerList");
+    // error
+    if (!answerList || answerList.length < 1) {
+      Taro.showToast({
+        title: "answerList is empty",
+        icon: "error",
+        duration: 3000,
+      });
+    }
+    
+    // get best question result
+    const result = getBestQuestionResult(answerList, questions, questionResults);
+  
+    return (
+      <View className="resultPage">
+        <View className="at-article__h1 title">{result.resultName}</View>
+        <View className="at-article__h2 subTitle">{result.resultDesc}</View>
+  ```
+  
+  
+
+
+
+### 小程序开发的限制
+
+- 微信开发者工具 本身bug
+
+  清理工具缓存、重启项目、重启开发者工具
+
+  
+
+
+
+- 常用解决方案
+
+  [Reference](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=#heading-34)
+
+  小程序的调试和发布
+
+  网络请求：请求库 (不能用Axios)、请求代码生成、全局请求处理器
+
+  状态管理：全局js变量 (不熟悉前端的推荐)
+
+  用户登录：
+
+  开发规范：
+
+  
+
+
+
+### 扩展思路
+
+- 定位
+
+  题目都是固定的，不需要后端
+
+- 扩展
+
+  [Reference](http://sssch.net/ArticleDetail.aspx?ArticleID=13188130318) 
 
 
 

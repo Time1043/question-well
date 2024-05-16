@@ -1,14 +1,11 @@
-import { View } from "@tarojs/components";
-
-import "./index.scss";
-// eslint-disable-next-line import/first
-import GlobalFooter from "../../components/GlobalFooter";
-// eslint-disable-next-line import/first
-import { AtButton, AtRadio } from "taro-ui";
-// eslint-disable-next-line import/first
-import { useEffect, useState } from "react";
-import questions from "../../data/questions.json";
+import {View} from "@tarojs/components";
+import {AtButton, AtRadio} from "taro-ui";
+import {useEffect, useState} from "react";
 import Taro from "@tarojs/taro";
+
+import GlobalFooter from "../../components/GlobalFooter";
+import questions from "../../data/questions.json";
+import "./index.scss";
 
 /**
  * Home Page
@@ -17,17 +14,21 @@ export default () => {
   // Current title sequence number (starts from 1)
   const [current, setCurrent] = useState<number>(1);
 
-  // const [currentQuestion, setCurrentQuestion] = useState<Question>(questions[0]);
-  const currentQuestion = questions[0];
+  // Current question and options
+  const [currentQuestion, setCurrentQuestion] = useState<Question>(
+    questions[0]
+  );
   const questionOptions = currentQuestion.options.map((option) => {
     return { label: `${option.key}. ${option.value}`, value: option.key };
   });
 
+  // Current answer and answer list
   const [currentAnswer, setCurrentAnswer] = useState<string>();
   const [answerList] = useState<string[]>([]); // history, submit
 
   // Current title sequence number -> current question
   useEffect(() => {
+    setCurrentQuestion(questions[current - 1]);
     setCurrentAnswer(answerList[current - 1]);
   }, [current]);
 
@@ -67,7 +68,7 @@ export default () => {
           disabled={!currentAnswer}
           onClick={() => {
             // send data
-
+            Taro.setStorageSync("answerList", answerList);
             // route to result page
             Taro.navigateTo({
               url: "/pages/result/index",
