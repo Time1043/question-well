@@ -1654,9 +1654,9 @@
 
   评分模块实现 (策略接口 两种策略实现 全局执行器) 
 
-  回答模块
+  回答模块：UserAnswerController 调用评分模块 并更新回答表
 
-  控制应用可见范围
+  控制应用可见范围：若应用未过审，用户无法答题，无法通过列表查看到 (业务逻辑!)
 
   
 
@@ -1666,13 +1666,255 @@
 
 - 审核请求类 (参数 返回值)
 
+  审核状态、审核信息；审核人、审核时间 (不需要用户填)
+
   ```java
+  package com.time1043.questionwell.common;
   
+  import lombok.Data;
+  
+  import java.io.Serializable;
+  
+  /**
+   * 审核请求
+   */
+  @Data
+  public class ReviewRequest implements Serializable {
+  
+      /**
+       * id
+       */
+      private Long id;
+  
+      /**
+       * 状态：0-待审核, 1-通过, 2-拒绝
+       */
+      private Integer reviewStatus;
+  
+      /**
+       * 审核信息
+       */
+      private String reviewMessage;
+  
+  
+      private static final long serialVersionUID = 1L;
+  }
   ```
 
 - 审核接口
 
   ```java
+      /**
+       * 应用审核
+       *
+       * @param reviewRequest
+       * @param request
+       * @return
+       */
+      @PostMapping("/review")
+      @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+      public BaseResponse<Boolean> doAppReview(@RequestBody ReviewRequest reviewRequest, HttpServletRequest request) {
+          ThrowUtils.throwIf(reviewRequest == null, ErrorCode.PARAMS_ERROR);
+          Long id = reviewRequest.getId();
+          Integer reviewStatus = reviewRequest.getReviewStatus();
+          // 校验
+          ReviewStatusEnum reviewStatusEnum = ReviewStatusEnum.getEnumByValue(reviewStatus);
+          if (id == null || reviewStatusEnum == null) {
+              throw new BusinessException(ErrorCode.PARAMS_ERROR);
+          }
+          // 判断是否存在
+          App oldApp = appService.getById(id);
+          ThrowUtils.throwIf(oldApp == null, ErrorCode.NOT_FOUND_ERROR);
+          // 已是该状态
+          if (oldApp.getReviewStatus().equals(reviewStatus)) {
+              throw new BusinessException(ErrorCode.PARAMS_ERROR, "请勿重复审核");
+          }
+          // 更新审核状态
+          User loginUser = userService.getLoginUser(request);
+          App app = new App();
+          app.setId(id);
+          app.setReviewStatus(reviewStatus);
+          app.setReviewMessage(reviewRequest.getReviewMessage());
+          app.setReviewerId(loginUser.getId());
+          app.setReviewTime(new Date());
+          boolean result = appService.updateById(app);
+          ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+          return ResultUtils.success(true);
+      }
+  ```
+
+  
+
+
+
+### 评分模块实现 !!!
+
+- 需求：针对不同的应用类别和评分策略，编写不同的实现逻辑
+
+- 实现：策略模式 (设计模式)
+
+  定义一系列算法，并将每个算法封装到独立的类中，使得他们可以相互替换
+
+  将所有代码放到 `scoring` 包中，模块化
+
+  本场景中，输入的参数是一致的 (应用 用户的答案列表)，并且每种实现逻辑区别较大，很适合用策略模式
+
+  `function getBestQuestionResult(answerList, app.questions, app.question_results) -> maxScoreResult`
+
+  
+
+  
+
+- 策略接口
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import com.time1043.questionwell.model.entity.App;
+  import com.time1043.questionwell.model.entity.UserAnswer;
+  
+  import java.util.List;
+  
+  /**
+   * 评分策略
+   */
+  public interface ScoringStrategy {
+  
+      /**
+       * 执行评分
+       *
+       * @param choices
+       * @param app
+       * @return
+       * @throws Exception
+       */
+      UserAnswer doScore(List<String> choices, App app) throws Exception;
+  }
+  ```
+
+  
+
+
+
+- 测评类策略的实现类 (先写注释)
+
+  根据 id 查询到题目和题目结果信息
+
+  统计用户每个选择对应的属性个数，如 I = 10 个，E = 5 个
+
+  遍历每种评分结果，计算哪个结果的得分更高
+
+  构造返回值，填充答案对象的属性
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import cn.hutool.json.JSONUtil;
+  import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+  import com.time1043.questionwell.model.dto.question.QuestionContentDTO;
+  import com.time1043.questionwell.model.entity.App;
+  import com.time1043.questionwell.model.entity.Question;
+  import com.time1043.questionwell.model.entity.ScoringResult;
+  import com.time1043.questionwell.model.entity.UserAnswer;
+  import com.time1043.questionwell.model.vo.QuestionVO;
+  import com.time1043.questionwell.service.AppService;
+  import com.time1043.questionwell.service.QuestionService;
+  import com.time1043.questionwell.service.ScoringResultService;
+  
+  import javax.annotation.Resource;
+  import java.sql.Wrapper;
+  import java.util.HashMap;
+  import java.util.List;
+  import java.util.Map;
+  
+  /**
+   * 自定义测评类应用的评分策略
+   */
+  public class CustomTestScoringStrategy implements ScoringStrategy {
+      @Resource
+      private QuestionService questionService;
+  
+      @Resource
+      private ScoringResultService scoringResultService;
+  
+      @Override
+      public UserAnswer doScore(List<String> choices, App app) throws Exception {
+          Long appId = app.getId();
+  
+          // 1. 根据 id 查询到题目和题目结果信息
+          Question question = questionService.getOne(
+                  Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId)
+          );
+          List<ScoringResult> scoringResultList = scoringResultService.list(
+                  Wrappers.lambdaQuery(ScoringResult.class).eq(ScoringResult::getAppId, appId)
+          );
+  
+  
+          // 2. 统计用户每个选择对应的属性个数，如 I = 10 个，E = 5 个
+          // 初始化一个Map，用于存储每个选项的计数
+          Map<String, Integer> optionCount = new HashMap<>();
+  
+          QuestionVO questionVO = QuestionVO.objToVo(question);
+          List<QuestionContentDTO> questionContent = questionVO.getQuestionContent();
+  
+          // 遍历题目列表
+          for (QuestionContentDTO questionContentDTO : questionContent) {
+              // 遍历答案列表
+              for (String answer : choices) {
+                  // 遍历题目中的选项
+                  for (QuestionContentDTO.Option option : questionContentDTO.getOptions()) {
+                      // 如果答案和选项的key匹配
+                      if (option.getKey().equals(answer)) {
+                          // 获取选项的result属性
+                          String result = option.getResult();
+  
+                          // 如果result属性不在optionCount中，初始化为0
+                          if (!optionCount.containsKey(result)) {
+                              optionCount.put(result, 0);
+                          }
+  
+                          // 在optionCount中增加计数
+                          optionCount.put(result, optionCount.get(result) + 1);
+                      }
+                  }
+              }
+          }
+  
+  
+          // 3. 遍历每种评分结果，计算哪个结果的得分更高
+          // 初始化最高分数和最高分数对应的评分结果
+          int maxScore = 0;
+          ScoringResult maxScoringResult = scoringResultList.get(0);
+  
+          // 遍历评分结果列表
+          for (ScoringResult scoringResult : scoringResultList) {
+              List<String> resultProp = JSONUtil.toList(scoringResult.getResultProp(), String.class);
+              // 计算当前评分结果的分数，[I, E] => [10, 5] => 15
+              int score = resultProp.stream()
+                      .mapToInt(prop -> optionCount.getOrDefault(prop, 0))
+                      .sum();
+  
+              // 如果分数高于当前最高分数，更新最高分数和最高分数对应的评分结果
+              if (score > maxScore) {
+                  maxScore = score;
+                  maxScoringResult = scoringResult;
+              }
+          }
+  
+  
+          // 4. 构造返回值，填充答案对象的属性
+          UserAnswer userAnswer = new UserAnswer();
+          userAnswer.setAppId(appId);
+          userAnswer.setAppType(app.getAppType());
+          userAnswer.setScoringStrategy(app.getScoringStrategy());
+          userAnswer.setChoices(JSONUtil.toJsonStr(choices));
+          userAnswer.setResultId(maxScoringResult.getId());
+          userAnswer.setResultName(maxScoringResult.getResultName());
+          userAnswer.setResultDesc(maxScoringResult.getResultDesc());
+          userAnswer.setResultPicture(maxScoringResult.getResultPicture());
+          return userAnswer;
+      }
+  }
   
   ```
 
@@ -1680,26 +1922,411 @@
 
 
 
-### 评分模块实现
+- 得分类策略的实现类
 
-- 需求
-- 实现：策略模式
+  根据 id 查询到题目和题目结果信息（按分数**降序排序**）
+
+  统计用户的总得分
+
+  遍历得分结果，找到第一个用户分数大于得分范围的结果，作为最终结果
+
+  构造返回值，填充答案对象的属性
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import cn.hutool.json.JSONUtil;
+  import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+  import com.time1043.questionwell.model.dto.question.QuestionContentDTO;
+  import com.time1043.questionwell.model.entity.App;
+  import com.time1043.questionwell.model.entity.Question;
+  import com.time1043.questionwell.model.entity.ScoringResult;
+  import com.time1043.questionwell.model.entity.UserAnswer;
+  import com.time1043.questionwell.model.vo.QuestionVO;
+  import com.time1043.questionwell.service.QuestionService;
+  import com.time1043.questionwell.service.ScoringResultService;
+  
+  import javax.annotation.Resource;
+  import java.util.List;
+  import java.util.Optional;
+  
+  /**
+   * 自定义打分类应用的评分策略
+   */
+  public class CustomScoreScoringStrategy implements ScoringStrategy {
+  
+      @Resource
+      private QuestionService questionService;
+  
+      @Resource
+      private ScoringResultService scoringResultService;
+  
+      @Override
+      public UserAnswer doScore(List<String> choices, App app) throws Exception {
+          Long appId = app.getId();
+          
+          // 1. 根据 id 查询到题目和题目结果信息（按分数降序排序）
+          Question question = questionService.getOne(
+                  Wrappers.lambdaQuery(Question.class).eq(Question::getAppId, appId)
+          );
+          List<ScoringResult> scoringResultList = scoringResultService.list(
+                  Wrappers.lambdaQuery(ScoringResult.class)
+                          .eq(ScoringResult::getAppId, appId)
+                          .orderByDesc(ScoringResult::getResultScoreRange)
+          );
+  
+  
+          // 2. 统计用户的总得分
+          int totalScore = 0;
+          QuestionVO questionVO = QuestionVO.objToVo(question);
+          List<QuestionContentDTO> questionContent = questionVO.getQuestionContent();
+  
+          // 遍历题目列表
+          for (QuestionContentDTO questionContentDTO : questionContent) {
+              // 遍历答案列表
+              for (String answer : choices) {
+                  // 遍历题目中的选项
+                  for (QuestionContentDTO.Option option : questionContentDTO.getOptions()) {
+                      // 如果答案和选项的key匹配
+                      if (option.getKey().equals(answer)) {
+                          int score = Optional.of(option.getScore()).orElse(0);
+                          totalScore += score;
+                      }
+                  }
+              }
+          }
+  
+  
+          // 3. 遍历得分结果，找到第一个用户分数大于得分范围的结果，作为最终结果
+          ScoringResult maxScoringResult = scoringResultList.get(0);
+          for (ScoringResult scoringResult : scoringResultList) {
+              if (totalScore >= scoringResult.getResultScoreRange()) {
+                  maxScoringResult = scoringResult;
+                  break;
+              }
+          }
+  
+  
+          // 4. 构造返回值，填充答案对象的属性
+          UserAnswer userAnswer = new UserAnswer();
+          userAnswer.setAppId(appId);
+          userAnswer.setAppType(app.getAppType());
+          userAnswer.setScoringStrategy(app.getScoringStrategy());
+          userAnswer.setChoices(JSONUtil.toJsonStr(choices));
+          userAnswer.setResultId(maxScoringResult.getId());
+          userAnswer.setResultName(maxScoringResult.getResultName());
+          userAnswer.setResultDesc(maxScoringResult.getResultDesc());
+          userAnswer.setResultPicture(maxScoringResult.getResultPicture());
+          userAnswer.setResultScore(totalScore);
+          return userAnswer;
+      }
+  }
+  
+  ```
+
+  
 
 
+
+- 方便外层调用 (封装)
+
+  工具类 管理类 全局执行器
+
+  工厂模式 ...
+
+- 方法1：编程式，所有的代码配置信息都在代码里，简单直接一个文件
+
+  `ScoringStrategyContext` ( `@Deprecated`)
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import com.time1043.questionwell.common.ErrorCode;
+  import com.time1043.questionwell.exception.BusinessException;
+  import com.time1043.questionwell.model.entity.App;
+  import com.time1043.questionwell.model.entity.UserAnswer;
+  import com.time1043.questionwell.model.enums.AppScoringStrategyEnum;
+  import com.time1043.questionwell.model.enums.AppTypeEnum;
+  import org.springframework.stereotype.Service;
+  
+  import javax.annotation.Resource;
+  import java.util.List;
+  
+  @Service
+  @Deprecated
+  public class ScoringStrategyContext {
+  
+      @Resource
+      private CustomScoreScoringStrategy customScoreScoringStrategy;
+  
+      @Resource
+      private CustomTestScoringStrategy customTestScoringStrategy;
+  
+      /**
+       * 评分
+       *
+       * @param choiceList
+       * @param app
+       * @return
+       * @throws Exception
+       */
+      public UserAnswer doScore(List<String> choiceList, App app) throws Exception {
+          AppTypeEnum appTypeEnum = AppTypeEnum.getEnumByValue(app.getAppType());
+          AppScoringStrategyEnum appScoringStrategyEnum = AppScoringStrategyEnum.getEnumByValue(app.getScoringStrategy());
+          if (appTypeEnum == null || appScoringStrategyEnum == null) {
+              throw new BusinessException(ErrorCode.SYSTEM_ERROR, "应用配置有误，未找到匹配的策略");
+          }
+          // 根据不同的应用类别和评分策略，选择对应的策略执行
+          switch (appTypeEnum) {
+              case SCORE:
+                  switch (appScoringStrategyEnum) {
+                      case CUSTOM:
+                          return customScoreScoringStrategy.doScore(choiceList, app);
+                      case AI:
+                          break;
+                  }
+                  break;
+              case TEST:
+                  switch (appScoringStrategyEnum) {
+                      case CUSTOM:
+                          return customTestScoringStrategy.doScore(choiceList, app);
+                      case AI:
+                          break;
+                  }
+                  break;
+          }
+          throw new BusinessException(ErrorCode.SYSTEM_ERROR, "应用配置有误，未找到匹配的策略");
+      }
+  }
+  
+  ```
+
+- 方法2：声明式，customScoreScoringStrategy : SCORE - CUSTOM (参数 注解)
+
+  `ScoringStrategyConfig`
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import org.springframework.stereotype.Component;
+  
+  import java.lang.annotation.ElementType;
+  import java.lang.annotation.Retention;
+  import java.lang.annotation.RetentionPolicy;
+  import java.lang.annotation.Target;
+  
+  @Target(ElementType.TYPE)
+  @Retention(RetentionPolicy.RUNTIME)
+  @Component
+  public @interface ScoringStrategyConfig {
+  
+      /**
+       * 应用类型
+       * @return
+       */
+      int appType();
+  
+      /**
+       * 评分策略
+       * @return
+       */
+      int scoringStrategy();
+  }
+  ```
+
+  `ScoringStrategyExecutor` (可扩展性好)
+
+  ```java
+  package com.time1043.questionwell.scoring;
+  
+  import com.time1043.questionwell.common.ErrorCode;
+  import com.time1043.questionwell.exception.BusinessException;
+  import com.time1043.questionwell.model.entity.App;
+  import com.time1043.questionwell.model.entity.UserAnswer;
+  import org.springframework.stereotype.Service;
+  
+  import javax.annotation.Resource;
+  import java.util.List;
+  
+  /**
+   * 评分策略执行器
+   */
+  @Service
+  public class ScoringStrategyExecutor {
+  
+      // 策略列表
+      @Resource
+      private List<ScoringStrategy> scoringStrategyList;
+  
+  
+      /**
+       * 评分
+       *
+       * @param choiceList
+       * @param app
+       * @return
+       * @throws Exception
+       */
+      public UserAnswer doScore(List<String> choiceList, App app) throws Exception {
+          Integer appType = app.getAppType();
+          Integer appScoringStrategy = app.getScoringStrategy();
+          if (appType == null || appScoringStrategy == null) {
+              throw new BusinessException(ErrorCode.SYSTEM_ERROR, "应用配置有误，未找到匹配的策略");
+          }
+          // 根据注解获取策略!!!
+          for (ScoringStrategy strategy : scoringStrategyList) {
+              if (strategy.getClass().isAnnotationPresent(ScoringStrategyConfig.class)) {
+                  ScoringStrategyConfig scoringStrategyConfig = strategy.getClass().getAnnotation(ScoringStrategyConfig.class);
+                  if (scoringStrategyConfig.appType() == appType && scoringStrategyConfig.scoringStrategy() == appScoringStrategy) {
+                      return strategy.doScore(choiceList, app);
+                  }
+              }
+          }
+          throw new BusinessException(ErrorCode.SYSTEM_ERROR, "应用配置有误，未找到匹配的策略");
+      }
+  }
+  
+  ```
+
+  打上注解 (触发条件)
+
+  ```java
+  @ScoringStrategyConfig(appType = 0, scoringStrategy = 0)
+  public class CustomScoreScoringStrategy implements ScoringStrategy {
+  
+  @ScoringStrategyConfig(appType = 1, scoringStrategy = 0)
+  public class CustomTestScoringStrategy implements ScoringStrategy {
+  
+  ```
+
+  
 
 
 
 ### 回答模块
 
+- UserAnswerController 
+
+  调用评分分模块
+
+  ```java
+  public class UserAnswerController {
+      
+      
+      @Resource
+      private AppService appService;
+      @Resource
+      private ScoringStrategyExecutor scoringStrategyExecutor;
+  
+      
+      /**
+       * 创建用户答案
+       *
+       * @param userAnswerAddRequest
+       * @param request
+       * @return
+       */
+      @PostMapping("/add")
+      public BaseResponse<Long> addUserAnswer(@RequestBody UserAnswerAddRequest userAnswerAddRequest, HttpServletRequest request) {
+          ThrowUtils.throwIf(userAnswerAddRequest == null, ErrorCode.PARAMS_ERROR);
+          // todo 在此处将实体类和 DTO 进行转换
+          UserAnswer userAnswer = new UserAnswer();
+          BeanUtils.copyProperties(userAnswerAddRequest, userAnswer);
+          List<String> choices = userAnswerAddRequest.getChoices();
+          userAnswer.setChoices(JSONUtil.toJsonStr(choices));
+  
+          // 数据校验
+          userAnswerService.validUserAnswer(userAnswer, true);
+          // 判断app是否存在
+          Long appId = userAnswerAddRequest.getAppId();
+          App app = appService.getById(appId);
+          ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
+  
+          // todo 填充默认值
+          User loginUser = userService.getLoginUser(request);
+          userAnswer.setUserId(loginUser.getId());
+          // 写入数据库
+          boolean result = userAnswerService.save(userAnswer);
+          ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+          // 返回新写入的数据 id
+          long newUserAnswerId = userAnswer.getId();
+  
+          // 调用评分分模块
+          try {
+              UserAnswer userAnswerWithResult = scoringStrategyExecutor.doScore(choices, app);
+              userAnswer.setId(newUserAnswerId);
+              userAnswerService.updateById(userAnswerWithResult);
+          } catch (Exception e) {
+              e.printStackTrace();
+              throw new BusinessException(ErrorCode.OPERATION_ERROR, "评分错误");
+          }
+  
+          return ResultUtils.success(newUserAnswerId);
+      }
+  
+  
+  ```
+
+  
 
 
 
+- 测试
+
+  ```
+  # 登录 注册
+  http://localhost:8101/api/doc.html#/default/user-controller/userLoginUsingPOST
+  
+  # 创建应用 创建题目
+  http://localhost:8101/api/doc.html#/default/app-controller/addAppUsingPOST
+  http://localhost:8101/api/doc.html#/default/question-controller/addQuestionUsingPOST
+  
+  # 创建评分结果 用id查询
+  http://localhost:8101/api/doc.html#/default/scoring-result-controller/addScoringResultUsingPOST
+  http://localhost:8101/api/doc.html#/default/scoring-result-controller/getScoringResultVOByIdUsingGET
+  
+  # 管理员审核发布
+  http://localhost:8101/api/doc.html#/default/app-controller/getAppVOByIdUsingGET
+  http://localhost:8101/api/doc.html#/default/app-controller/doAppReviewUsingPOST
+  
+  # 测评类应用作答 得分类应用作答
+  http://localhost:8101/api/doc.html#/default/user-answer-controller/addUserAnswerUsingPOST
+  http://localhost:8101/api/doc.html#/default/user-answer-controller/getUserAnswerVOByIdUsingGET
+  
+  ```
+
+  
 
 
 
 ### 控制应用可见范围
 
+- 业务逻辑
 
+  没过审的应用 不能答题
+
+  controller\UserAnswerController.java
+
+  ```java
+  
+          if (!ReviewStatusEnum.PASS.equals(ReviewStatusEnum.getEnumByValue(app.getReviewStatus()))) {
+              throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "该应用未通过审核");
+          }
+  
+  ```
+
+  没过审的应用 不能给普通用户看到 (管理员能看到)
+
+  controller\AppController.java
+
+  ```java
+  
+          // 普通用户 只能看到过审的应用
+          appQueryRequest.setReviewStatus(ReviewStatusEnum.PASS.getValue());
+          
+  ```
+
+  
 
 
 
