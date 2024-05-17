@@ -14,7 +14,7 @@
 
 - Reference
 
-  [yupi github](https://github.com/liyupi/yudada), [yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y), [yupi note code-nav](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=),
+  [yupi github](https://github.com/liyupi/yudada), [yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y), [yupi note code-nav](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=), [yupi note code-nav](https://www.code-nav.cn/course/1790274408835506178),  
   
   [zhipuAI](https://open.bigmodel.cn/), [xunfei spark](https://xinghuo.xfyun.cn/sparkapi), [Yu Smart](https://www.yucongming.com/), 
   
@@ -1188,8 +1188,6 @@
 
   ![Snipaste_2024-05-16_10-10-24](res/Snipaste_2024-05-16_10-10-24.png)
 
-  
-
 
 
 - 确定需求优先级
@@ -1462,17 +1460,179 @@
 
 - 总览：5 table 最基础的增删改查，不包含复杂的业务逻辑
 
-  数据库访问层 代码生成 `MyBatis-X`
+  数据库访问层 代码生成 `MyBatis-X` (除了user 除了service)
 
   业务逻辑层 代码生成 `CodeGenerator` (Controller, Service 接口和实现类, 数据模型包装类和枚举类)
 
   数据模型开发
 
-  接口开发
+  接口开发 controller (简单的直接在这完成)
 
-  服务开发
+  服务开发 service
 
   Swagger接口文档测试
+  
+  
+
+
+
+### 数据库访问层 (mapper model.entity)
+
+- 生成代码
+
+- 修改细节 
+
+  主键生成策略 递增 -> 雪花算法 `@TableId(type = IdType.ASSIGN_ID)`
+
+  逻辑删除 `@TableLogic`
+
+  
+
+
+
+### 业务逻辑层 数据模型开发 (service controller model.vo model.dto)
+
+- 生成代码
+
+  基于帖子 (资源) 的通用模板
+
+  数据库的封装类、相应给前端的封装类
+
+  应用表、题目表、回答表、评分表
+
+  ```java
+          // 指定生成参数
+          String packageName = "com.time1043.questionwell";
+          String dataName = "应用";
+          String dataKey = "app";
+          String upperDataKey = "App";
+  
+          // 指定生成参数
+          String packageName = "com.time1043.questionwell";
+          String dataName = "题目";
+          String dataKey = "question";
+          String upperDataKey = "Question";
+  
+          // 指定生成参数
+          String packageName = "com.time1043.questionwell";
+          String dataName = "评分结果";
+          String dataKey = "scoringResult";
+          String upperDataKey = "ScoringResult";
+  
+          // 指定生成参数
+          String packageName = "com.time1043.questionwell";
+          String dataName = "用户答案";
+          String dataKey = "userAnswer";
+          String upperDataKey = "UserAnswer";
+  
+  ```
+
+  
+
+
+
+- 修改数据模型
+
+- model.enums 枚举类 (应用类型 评分策略 审核状态)
+
+  定义枚举字段、根据数据库字段获取枚举值的方法(遍历所有枚举值 判断用户传的是哪个现有枚举值)、获取所有枚举值列表(给前端)、get方法
+
+- model.dto 封装类 (前端的增删改查接口 先复制再删除)
+
+  `edit` (给用户用的)  `update` (给管理员用的)
+
+  创建app：(id系统生成不用填)、`应用名`、`应用描述`、`应用图标`、`应用类型`、`评分策略`；(审核...不能给用户填)；(创建用户 创建时间 更新时间 不能给用户填)
+
+  编辑app：`id`、`应用名`、`应用描述`、`应用图标`、`应用类型`、`评分策略`
+
+  查询app：`id`、`应用名`、`应用描述`、`应用图标`、`应用类型`、`评分策略`；`审核状态`、`审核信息`、`审核人id`；`创建用户id`、`id`、`搜索词`
+
+  修改app：`id`、`应用名`、`应用描述`、`应用图标`、`应用类型`、`评分策略`；`审核状态`、`审核信息`、`审核人id`、`审核时间`；(创建用户 创建时间 更新时间 不能给管理员改)
+  
+  QuestionContentDTO
+  
+  创建question：
+  
+  编辑question：
+  
+  查询question：
+  
+  修改question：
+  
+  创建scoringResult：
+  
+  编辑scoringResult：
+  
+  查询scoringResult：
+  
+  修改scoringResult：
+  
+  创建userAnswer：
+  
+  编辑userAnswer：
+  
+  查询userAnswer：
+  
+  修改userAnswer：
+  
+- model.vo 后端相应给前端的视图类
+
+  AppVO  关联查询 用户信息
+
+  QuestionVO 
+
+  ScoringResultVO
+
+  UserAnswerVO
+
+
+
+
+
+- 对JSON结构生成dto包装类 (题目内容 结果属性集合list 用户答案list)
+
+  入库再转JSON
+
+  根据示例数据生成Java代码 AI
+
+  
+
+
+
+### 接口开发 服务开发
+
+- 整合代码
+
+  AppController -> AppService -> AppServiceImpl
+
+  QuestionController -> QuestionService -> QuestionServiceImpl
+
+  ScoringResultController -> ScoringResultService -> ScoringResultServiceImpl
+
+  UserAnswerController -> UserAnswerService -> UserAnswerServiceImpl
+
+
+
+- 测试
+
+  ```bash
+  # http://localhost:8101/api/doc.html
+  
+  # http://localhost:8101/api/doc.html#/default/app-controller/addAppUsingPOST
+  # http://localhost:8101/api/doc.html#/default/app-controller/getAppVOByIdUsingGET
+  # http://localhost:8101/api/doc.html#/default/app-controller/listAppByPageUsingPOST
+  
+  ```
+
+  
+
+
+
+### 通用模块
+
+- 上传图片：结果图片、应用图片 
+
+  FileController, FileUploadBizEnum (定义枚举)
 
 
 
@@ -1482,7 +1642,15 @@
 
 - 总览
 
-  应用审核功能
+  应用模块：审核发布和下架应用 (仅管理员) `P0`
+
+  评分模块：根据回答计算评分结果 (多种评分策略 测评类 打分类) `P0`
+
+  回答模块：提交回答 (创建) `P0` 需要额外调整 提交回答后就可以调用评分模块 并更新回答表
+
+- 计划
+
+  应用审核功能 (通用)
 
   评分模块实现 (策略接口 两种策略实现 全局执行器) 
 
@@ -1490,9 +1658,46 @@
 
   控制应用可见范围
 
+  
 
 
 
+### 应用审核功能 (通用)
+
+- 审核请求类 (参数 返回值)
+
+  ```java
+  
+  ```
+
+- 审核接口
+
+  ```java
+  
+  ```
+
+  
+
+
+
+### 评分模块实现
+
+- 需求
+- 实现：策略模式
+
+
+
+
+
+### 回答模块
+
+
+
+
+
+
+
+### 控制应用可见范围
 
 
 
