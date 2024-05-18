@@ -18,7 +18,9 @@
   
   [zhipuAI](https://open.bigmodel.cn/), [xunfei spark](https://xinghuo.xfyun.cn/sparkapi), [Yu Smart](https://www.yucongming.com/), 
   
-  [Taro](https://taro-docs.jd.com/docs/)、[Taro UI](https://taro-ui.jd.com/#/)
+  [Taro](https://taro-docs.jd.com/docs/)、[Taro UI](https://taro-ui.jd.com/#/), 
+  
+  [vuejs org](https://cn.vuejs.org/), [arco design (component vue)](https://arco.design/vue/docs/start), [Pinia](https://pinia.vuejs.org/zh/getting-started.html)
 
 
 
@@ -436,11 +438,153 @@
 
 
 
+### 前端项目初始化
+
+- 技术选型
+
+  Vue 3, Vue-CLI 脚手架, Pinia 状态管理, Axios 请求库, Arco Design 组件库
+
+  前端工程化 ESlint + Prettier + TypeScript
+
+  富文本编辑器, QRCodejs 二维码生成, OpenAPI 前端代码生成
 
 
 
+- 确认环境
+
+  ```bash
+  node -v  # 18 or 16
+  npm -v  # 9.5.1  
+  
+  
+  # if need 
+  npm cache clean --force
+  npm install -g npm@9.5.1
+  
+  ```
+
+- 创建项目：[vue-cli](https://cli.vuejs.org/zh/guide/) (稳定)
+
+  ```bash
+  cd /d/code2/java-code/question-well
+  
+  npm install -g @vue/cli  # 脚手架工具
+  vue -V  # 5.0.8
+  vue create question-well-frontend  # 创建项目
+  
+  
+  # 选择自定义
+  Vue CLI v5.0.8
+  ? Please pick a preset:
+    Default ([Vue 3] babel, eslint)
+    Default ([Vue 2] babel, eslint) 
+  > Manually select features ✔
+  
+  # 创建项目的选项
+  Vue CLI v5.0.8
+  ? Please pick a preset: Manually select features
+  ? Check the features needed for your project: Babel, TS, Router, Linter
+  ? Choose a version of Vue.js that you want to start the project with 3.x
+  ? Use class-style component syntax? No
+  ? Use Babel alongside TypeScript (required for modern mode, auto-detected polyfills, transpiling JSX)? Yes
+  ? Use history mode for router? (Requires proper server setup for index fallback in production) Yes
+  ? Pick a linter / formatter config: Prettier
+  ? Pick additional lint features: Lint on save
+  ? Where do you prefer placing config for Babel, ESLint, etc.? In dedicated config files
+  ? Save this as a preset for future projects? (y/N) n
+  
+  
+  cd question-well-frontend && npm run serve  # 先运行
+  
+  ```
+
+- 前端工程化配置
+
+  脚手架已配置：代码美化、自动校验、格式化插件 (无需自己配置)
+
+  但是WebStorm的格式化和`.eslintrc.js`不适配：
+
+  settings -> prettier -> prettier package选上、run for files`{**/*,*}.{js,ts,jsx,tsx,vue}`、on reformat code 打勾
+
+  settings -> eslint -> automatic eslint configuration
+
+  
 
 
+
+- 引入组件库
+
+  ```bash
+  npm install --save-dev @arco-design/web-vue
+  
+  ```
+
+  main.ts (完整引入)
+
+  ```typescript
+  import { createApp } from "vue";
+  import App from "./App.vue";
+  import ArcoVue from "@arco-design/web-vue";
+  import "@arco-design/web-vue/dist/arco.css";
+  import router from "./router";
+  
+  createApp(App).use(ArcoVue).use(router).mount("#app");
+  
+  ```
+
+  App.vue (验证是否成功)  [Badge](https://arco.design/vue/component/badge)
+
+  ```vue
+      <a-badge :count="9">
+        <a-avatar shape="square" />
+      </a-badge>
+  ```
+  
+  
+
+
+
+- 定义开发规范 (团队统一 利于维护)
+
+  选择1：配置式 (不推荐)
+
+  定义对象，写键值对 
+
+  ```vue
+  export default defineComponent({
+    name: "HomeView",
+    components: {
+      HelloWorld,
+    },
+  });
+  ```
+
+  选择2：[组合式API](https://cn.vuejs.org/guide/introduction.html#api-styles) (推荐)
+
+  `<script setup>` js顺序
+
+  ```vue
+  <template>
+    <div id="home">
+      {{ a }}
+    </div>
+  </template>
+  
+  
+  <script setup lang="ts">
+  const a = 1;
+  </script>
+  
+  
+  <style scoped>
+  #home {
+    color: red;
+  }
+  </style>
+  
+  ```
+
+  
 
 
 
@@ -1456,7 +1600,7 @@
 
 
 
-## 后端开发基础 (增删改查)
+## 后端开发基础 (CRUD)
 
 - 总览：5 table 最基础的增删改查，不包含复杂的业务逻辑
 
@@ -2332,20 +2476,954 @@
 
 ### 扩展思路
 
+- 扩展思路
+
+  补充更多的校验，如每个应用只能创建一条题目记录、补充对题目内容结构的校验等
+
+  尝试将审核功能添加到后端万用模板的代码生成器中，作为通用能力供自己的其他项目复用
+
+  
+
+
+
+## 前端开发 (模板)
+
+### 计划
+
+- 用户模块
+
+  注册、登录 `P0`
+
+  管理用户 - 增删改查 (仅管理员) `P1`
+
+- 应用模块
+
+  管理应用 - 增删改查 (仅管理员) `P0`
+
+  审核发布和下架应用 (仅管理员) `P0`
+
+- 题目模块
+
+  管理题目 - 增删改查 (仅管理员) `P1`、 
+
+- 评分模块
+
+  管理评分结果 - 增删改查 (仅管理员) `P1`
+
+- 回答模块
+
+- 统计分析模块
+
+  
+
+
+
+### 前端页面通用布局 (支持多套布局)
+
+- src\App.vue  (全局页面入口文件)
+
+  登录页面不需要导航栏
+
+  ```vue
+  <template>
+    <div id="app">
+      <template v-if="route.path.startsWith('/user')">
+        <router-view />
+      </template>
+      <template v-else>
+        <BasicLayout />
+      </template>
+    </div>
+  </template>
+  
+  <script setup lang="ts">
+  import BasicLayout from "@/layouts/BasicLayout.vue";
+  import { useRoute } from "vue-router";
+  import { onMounted } from "vue";
+  
+  const route = useRoute();
+  /**
+   * 全局初始化函数，有全局单次调用的代码，都可以写到这里
+   */
+  const doInit = () => {
+    console.log("Hello, welcome to my project");
+  };
+  
+  onMounted(() => {
+    doInit();
+  });
+  </script>
+  
+  <style scoped></style>
+  
+  ```
+
+- src\layouts\BasicLayout.vue  [布局组件 上中下布局](https://arco.design/vue/component/layout) 
+
+  顶部导航栏封装组件 `<GlobalHeader />`
+
+  中间布局动态替换 `<router-view />` (`src/router/index.ts`)
+
+  纵压缩：顶部横条、底部横条没有始终固定 (底部footer布局优化)
+
+  横压缩：未登录不要换行 (优化content globalHeader样式)
+
+  ```vue
+  <template>
+    <div id="basicLayout">
+      <a-layout style="min-height: 100vh">
+        <a-layout-header class="header">
+          <GlobalHeader />
+        </a-layout-header>
+  
+        <a-layout-content class="content">
+          <router-view />
+        </a-layout-content>
+  
+        <a-layout-footer class="footer">
+          <a href="http://github.com/Time1043" target="_blank">Time1043 oswin</a>
+        </a-layout-footer>
+      </a-layout>
+    </div>
+  </template>
+  
+  <script setup lang="ts">
+  import GlobalHeader from "@/components/GlobalHeader.vue";
+  </script>
+  
+  <style scoped>
+  #basicLayout .header {
+    margin-bottom: 16px;
+    box-shadow: #eee 1px 1px 5px;
+  }
+  
+  #basicLayout .content {
+    background: linear-gradient(to right, #bbb, #fff);
+    margin-bottom: 16px;
+    padding: 20px;
+  }
+  
+  #basicLayout .footer {
+    background: #efefef;
+    padding: 16px;
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+  }
+  </style>
+  
+  ```
+
+  
+
+
+
+- GlobalHeader.vue (封装组件)  
+
+- 选择组件
+
+  [菜单栏 menu](https://arco.design/vue/component/menu)、`titleBar` 头像标题、[栅格布局 flex](https://arco.design/vue/component/grid#flex)、[按钮](https://arco.design/vue/component/button)
+
+  路由实现 绑定跳转事件 `@menu-item-click`,`:selected-keys`; 
+
+  ```vue
+  <template>
+    <a-row id="globalHeader" align="center" :wrap="false">
+      <!-- grid: menu -->
+      <a-col flex="auto">
+        <a-menu
+          mode="horizontal"
+          :selected-keys="selectedKeys"
+          @menu-item-click="doMenuClick"
+        >
+          <a-menu-item
+            key="0"
+            :style="{ padding: 0, marginRight: '38px' }"
+            disabled
+          >
+            <div class="titleBar">
+              <img class="logo" src="../assets/logo.png" />
+              <span class="title">Question-Well</span>
+            </div>
+          </a-menu-item>
+  
+          <!-- visible routes -->
+          <a-menu-item v-for="item in visibleRoutes" :key="item.path">
+            {{ item.name }}
+          </a-menu-item>
+        </a-menu>
+      </a-col>
+  
+      <!-- grid: login button -->
+      <a-col flex="100px">
+        <a-button type="primary" href="/user/login">Login</a-button>
+      </a-col>
+    </a-row>
+  </template>
+  
+  <script setup lang="ts">
+  import { routes } from "@/router/routes";
+  import { computed, ref } from "vue";
+  import { useRouter } from "vue-router";
+  
+  const router = useRouter();
+  
+  // 当前选中的菜单项
+  const selectedKeys = ref(["/"]);
+  // 路由跳转时，自动更新选中的菜单项
+  router.afterEach((to, from, failure) => {
+    selectedKeys.value = [to.path];
+  });
+  
+  // 展示在菜单栏的路由数组
+  const visibleRoutes = computed(() => {
+    return routes.filter((item) => {
+      if (item.meta?.hideInMenu) {
+        return false;
+      }
+      // todo 根据权限过滤菜单
+      return true;
+    });
+  });
+  
+  // 点击菜单跳转到对应页面
+  const doMenuClick = (key: string) => {
+    router.push({
+      path: key,
+    });
+  };
+  </script>
+  
+  <style scoped>
+  #globalHeader {
+  }
+  
+  .titleBar {
+    display: flex;
+    align-items: center;
+  }
+  
+  .title {
+    margin-left: 16px;
+    color: black;
+  }
+  
+  .logo {
+    height: 48px;
+  }
+  </style>
+  
+  ```
+
+- 后续增强
+
+- 点击菜单项 -> 跳转更新路由 -> 更新路由后同步更新菜单栏的高亮状态
+
+  点击菜单项后跳转：点击路由跳转对应页面 (菜单组件读取路由 动态渲染菜单项 绑定跳转事件)
+
+  刷新后要选中之前：根据当前页面激活状态 (同步路由到菜单项)
+
+- 登录信息
+
+  获取状态变量 `store.state.user.loginUser?.userName`
+
+  修改状态变量：调用actions -> mutations -> state `store.dispatch("user/getLoginUser", { userName: "yz" });`
+
+  
+
+
+
+### 配置路由
+
+- 配置路由 导航栏的值 
+
+  src\router\index.ts (抽出)
+
+  ```typescript
+  import { createRouter, createWebHistory } from "vue-router";
+  import { routes } from "@/router/routes";
+  
+  const router = createRouter({
+    history: createWebHistory(process.env.BASE_URL),
+    routes,
+  });
+  
+  export default router;
+  
+  ```
+
+  src\router\routes.ts
+
+  不应该展示在菜单栏的页面 `meta hideInMenu`
+
+  ```typescript
+  import { RouteRecordRaw } from "vue-router";
+  import HomeView from "@/views/HomeView.vue";
+  import UserLayout from "@/layouts/UserLayout.vue";
+  
+  export const routes: Array<RouteRecordRaw> = [
+    {
+      path: "/",
+      name: "home",
+      component: HomeView,
+    },
+    {
+      path: "/hide",
+      name: "隐藏页面",
+      component: HomeView,
+      meta: {
+        hideInMenu: true,
+      },
+    },
+    {
+      path: "/user",
+      name: "用户",
+      component: UserLayout,
+      children: [
+        {
+          path: "/user/login",
+          name: "用户登录",
+          component: HomeView,
+        },
+        {
+          path: "/user/register",
+          name: "用户注册",
+          component: HomeView,
+        },
+      ],
+      meta: {
+        hideInMenu: true,
+      },
+    },
+    {
+      path: "/about",
+      name: "about",
+      // route level code-splitting
+      // this generates a separate chunk (about.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () =>
+        import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    },
+  ];
+  
+  ```
+
+  
+
+
+
+### 请求库 axios
+
+- 需求 
+
+  前端向后端发请求  [请求工具类 axios github](https://github.com/axios/axios), [axios Getting Started](https://axios-http.com/docs/intro)
+  
+  ```bash
+  cd /d/code2/java-code/question-well/question-well-frontend
+  npm install axios
+  
+  ```
+  
+- [需要定义全局请求配置](https://axios-http.com/docs/instance) (是否携带cookie, 后端前缀的接口地址...)
+
+- [全局请求响应拦截器 axios Interceptors ](https://axios-http.com/docs/interceptors)
+
+  src\request.ts
+
+  ```typescript
+  import axios from "axios";
+  import { Message } from "@arco-design/web-vue";
+  
+  const myAxios = axios.create({
+    baseURL: "http://localhost:8101",
+    timeout: 10000,
+    withCredentials: true,
+  });
+  
+  // 全局请求拦截器
+  myAxios.interceptors.request.use(
+    function (config) {
+      // Do something before request is sent
+      return config;
+    },
+    function (error) {
+      // Do something with request error
+      return Promise.reject(error);
+    }
+  );
+  
+  // 全局响应拦截器
+  myAxios.interceptors.response.use(
+    function (response) {
+      console.log(response);
+      // Any status code that lie within the range of 2xx cause this function to trigger
+      // Do something with response data
+      const { data } = response;
+  
+      // 未登录
+      if (data.code === 40100) {
+        // 不是获取用户信息的请求，并且用户目前不是已经在用户登录页面，则跳转到登录页面
+        if (
+          !response.request.responseURL.includes("user/get/login") &&
+          !window.location.pathname.includes("/user/login")
+        ) {
+          Message.warning("请先登录");
+          window.location.href = `/user/login?redirect=${window.location.href}`;
+        }
+      }
+  
+      return response;
+    },
+    function (error) {
+      // Any status codes that falls outside the range of 2xx cause this function to trigger
+      // Do something with response error
+      return Promise.reject(error);
+    }
+  );
+  
+  export default myAxios;
+  
+  ```
+
+  
+
+
+
+### 全局请求 OpenAPI
+
+- 需求
+
+  根据后端接口文档全局生成请求代码 
+
+- 安装依赖
+
+  [npm umijs/openapi](https://www.npmjs.com/package/@umijs/openapi)
+
+  ```bash
+  npm i --save-dev @umijs/openapi
+  
+  ```
+
+- question-well-frontend\openapi.config.ts  `requestLibPath`
+
+  ```typescript
+  const { generateService } = require("@umijs/openapi");
+  
+  generateService({
+    requestLibPath: "import request from '@/request'",
+    schemaPath: "http://localhost:8101/api/v2/api-docs",
+    serversPath: "./src",
+  });
+  
+  ```
+  
+  
+
+
+
+### 全局状态管理 (登录信息)
+
+- 需求
+
+  很多页面都要公用的变量 
+
+  用户登录信息
+
+- 安装依赖 [Pinia](https://pinia.vuejs.org/zh/getting-started.html)
+
+  ```bash
+  npm install pinia
+  
+  ```
+
+- 入口文件引入
+
+  main.ts
+
+  ```typescript
+  import { createApp } from "vue";
+  import App from "./App.vue";
+  import ArcoVue from "@arco-design/web-vue";
+  import "@arco-design/web-vue/dist/arco.css";
+  import router from "./router";
+  import { createPinia } from "pinia";
+  
+  const pinia = createPinia();
+  
+  createApp(App).use(ArcoVue).use(pinia).use(router).mount("#app");
+  
+  ```
+
+- 存储全局变量
+
+  src\store\userStore.ts
+
+  ```typescript
+  import { defineStore } from "pinia";
+  import { ref } from "vue";
+  import { getLoginUserUsingGet } from "@/api/userController";
+  import ACCESS_ENUM from "@/access/accessEnum";
+  
+  /**
+   * 登录用户信息全局状态
+   */
+  export const useLoginUserStore = defineStore("loginUser", () => {
+    const loginUser = ref<API.LoginUserVO>({
+      userName: "未登录",
+    });
+  
+    function setLoginUser(newLoginUser: API.LoginUserVO) {
+      loginUser.value = newLoginUser;
+    }
+  
+    async function fetchLoginUser() {
+      const res = await getLoginUserUsingGet();
+      if (res.data.code === 0 && res.data.data) {
+        loginUser.value = res.data.data;
+      } else {
+        loginUser.value = { userRole: ACCESS_ENUM.NOT_LOGIN };
+        // setTimeout(() => {
+        //   loginUser.value = { userName: "测试用户", id: 1, userRole: ACCESS_ENUM.ADMIN };
+        // }, 3000);
+      }
+    }
+  
+    return { loginUser, setLoginUser, fetchLoginUser };
+  });
+  
+  ```
+
+- 具体页面的使用
+
+  ```typescript
+
+  import { useLoginUserStore } from "@/store/userStore";
+  
+  const loginUserStore = useLoginUserStore();
+  loginUserStore.fetchLoginUser();
+  
+  ```
+  
 
 
 
 
+### 全局权限控制
+
+- 需求
+
+  控制每个页面需要什么权限
+
+  权限控制系统自己拦截校验 不再每个具体页面中写拦截
+  
+- 实现方案
+
+  在路由配置文件中，定义具体路由的访问权限
+
+  使用全局路由监听器，每次访问页面进行拦截处理
+  
+  
 
 
 
+- 权限枚举
+
+  src\access\accessEnum.ts
+
+  ```typescript
+  /**
+   * 权限定义
+   */
+  const ACCESS_ENUM = {
+    NOT_LOGIN: "notLogin",
+    USER: "user",
+    ADMIN: "admin",
+  };
+  
+  export default ACCESS_ENUM;
+  
+  ```
+
+- 路由配置权限
+
+  src\router\routes.ts
+
+  ```typescript
+  import { RouteRecordRaw } from "vue-router";
+  import HomeView from "@/views/HomeView.vue";
+  import UserLayout from "@/layouts/UserLayout.vue";
+  import ACCESS_ENUM from "@/access/accessEnum";
+  import NoAuthPage from "@/views/NoAuthPage.vue";
+  
+  export const routes: Array<RouteRecordRaw> = [
+    {
+      path: "/",
+      name: "首页",
+      component: HomeView,
+    },
+    {
+      path: "/noAuth",
+      name: "无权限",
+      component: NoAuthPage,
+      meta: {
+        hideInMenu: true,
+      },
+    },
+    {
+      path: "/admin",
+      name: "管理",
+      component: HomeView,
+      meta: {
+        access: ACCESS_ENUM.ADMIN,
+      },
+    },
+    {
+      path: "/user",
+      name: "用户",
+      component: UserLayout,
+      children: [
+        {
+          path: "/user/login",
+          name: "用户登录",
+          component: HomeView,
+        },
+        {
+          path: "/user/register",
+          name: "用户注册",
+          component: HomeView,
+        },
+      ],
+      meta: {
+        hideInMenu: true,
+      },
+    },
+    {
+      path: "/about",
+      name: "关于",
+      // route level code-splitting
+      // this generates a separate chunk (about.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () =>
+        import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
+    },
+  ];
+  
+  ```
+
+  
 
 
 
-## 前端开发
+- 全局拦截器
+
+  普通用户 不应该能点击 不应该看到路由 (`GlobalHeader.vue`)
+
+  src\access\checkAccess.ts
+
+  ```typescript
+  import ACCESS_ENUM from "@/access/accessEnum";
+  
+  /**
+   * 检查权限（判断当前登录用户是否具有某个权限）
+   * @param loginUser 当前登录用户
+   * @param needAccess 需要有的权限
+   * @return boolean 有无权限
+   */
+  const checkAccess = (
+    loginUser: API.LoginUserVO,
+    needAccess = ACCESS_ENUM.NOT_LOGIN
+  ) => {
+    // 获取当前登录用户具有的权限 没有loginUser则表示未登录 (当前页面不需要登录权限 则放行)
+    const loginUserAccess = loginUser?.userRole ?? ACCESS_ENUM.NOT_LOGIN;
+    if (needAccess === ACCESS_ENUM.NOT_LOGIN) {
+      return true;
+    }
+  
+    // 当前页面需要登录权限 (未登录 无权限)
+    if (needAccess === ACCESS_ENUM.USER) {
+      if (loginUserAccess === ACCESS_ENUM.NOT_LOGIN) {
+        return false;
+      }
+    }
+    // 当前页面需要管理员权限 (不是管理员 无权限)
+    if (needAccess === ACCESS_ENUM.ADMIN) {
+      if (loginUserAccess !== ACCESS_ENUM.ADMIN) {
+        return false;
+      }
+    }
+  
+    // 通过层层拦截 最终有权限
+    return true;
+  };
+  
+  export default checkAccess;
+  
+  ```
+
+  src\access\index.ts `router.beforeEach()`
+
+  ```typescript
+  import router from "@/router";
+  import { useLoginUserStore } from "@/store/userStore";
+  import ACCESS_ENUM from "@/access/accessEnum";
+  import checkAccess from "@/access/checkAccess";
+  
+  // 进入页面前，进行权限校验
+  router.beforeEach(async (to, from, next) => {
+    // 获取当前登录用户
+    const loginUserStore = useLoginUserStore();
+    let loginUser = loginUserStore.loginUser;
+  
+    // 如果之前没有尝试获取过登录用户信息，才自动登录
+    if (!loginUser || !loginUser.userRole) {
+      // 加 await 是为了等待用户登录成功并获取到值后，再执行后续操作
+      await loginUserStore.fetchLoginUser();
+      loginUser = loginUserStore.loginUser;
+    }
+  
+    // 当前页面需要的权限
+    const needAccess = (to.meta?.access as string) ?? ACCESS_ENUM.NOT_LOGIN;
+    // 要跳转的页面必须登录
+    if (needAccess !== ACCESS_ENUM.NOT_LOGIN) {
+      // 如果没登录，跳转到登录页面
+      if (
+        !loginUser ||
+        !loginUser.userRole ||
+        loginUser.userRole === ACCESS_ENUM.NOT_LOGIN
+      ) {
+        next(`/user/login?redirect=${to.fullPath}`);
+      }
+  
+      // 如果已经登录了，判断权限是否足够，如果不足，跳转到无权限页面
+      if (!checkAccess(loginUser, needAccess)) {
+        next("/noAuth");
+        return;
+      }
+    }
+  
+    next(); // 经过校验 放行
+  });
+  
+  ```
+
+  用户来到新页面 获取用户信息 
+
+  后台登录过了 有cookie 来到新页面默认没登录 -> 自动获取用户信息
+
+  ```typescript
+    // 获取当前登录用户
+    const loginUserStore = useLoginUserStore();
+    let loginUser = loginUserStore.loginUser;
+  ```
+
+  main.ts  全局入口引入
+
+  ```typescript
+  import "@/access";
+  ```
+
+  
 
 
 
+### 通用组件 MD
+
+- 依赖准备  [bytemd (github)](https://github.com/bytedance/bytemd), [bytemd (npm)](https://www.npmjs.com/package/bytemd)
+
+  ```bash
+  npm i @bytemd/vue-next
+  npm i @bytemd/plugin-highlight @bytemd/plugin-gfm
+  
+  ```
+
+- 代码实现
+
+  src\components\MdEditor.vue  (编辑的)
+
+  ```vue
+  <template>
+    <Editor :value="value" :plugins="plugins" @change="handleChange" />
+  </template>
+  
+  <script setup lang="ts">
+  import gfm from "@bytemd/plugin-gfm";
+  import highlight from "@bytemd/plugin-highlight";
+  import { Editor } from "@bytemd/vue-next";
+  import { ref } from "vue";
+  
+  const plugins = [
+    gfm(),
+    highlight(),
+    // Add more plugins here
+  ];
+  
+  const value = ref("");
+  
+  const handleChange = (v: string) => {
+    value.value = v;
+  };
+  </script>
+  
+  <style scoped></style>
+  
+  ```
+
+  src\components\MdViewer.vue  (看的)
+
+  ```vue
+  <template>
+    <Viewer :value="value" :plugins="plugins" />
+  </template>
+  
+  <script setup lang="ts">
+  import gfm from "@bytemd/plugin-gfm";
+  import highlight from "@bytemd/plugin-highlight";
+  import { Viewer } from "@bytemd/vue-next";
+  import { withDefaults, defineProps } from "vue";
+  
+  /**
+   * 定义组件属性类型
+   */
+  interface Props {
+    value: string;
+  }
+  
+  const plugins = [
+    gfm(),
+    highlight(),
+    // Add more plugins here
+  ];
+  
+  /**
+   * 给组件指定初始值
+   */
+  const props = withDefaults(defineProps<Props>(), {
+    value: () => "",
+  });
+  </script>
+  ```
+
+  
+
+
+
+### 通用组件 PictureUploader (复杂)
+
+- 图片上传组件  [uploader](https://arco.design/vue/component/upload)
+
+  src\components\PictureUploader.vue
+
+  ```vue
+  <template>
+    <a-space direction="vertical" :style="{ width: '100%' }">
+      <a-upload
+        :fileList="file ? [file] : []"
+        :show-file-list="false"
+        :custom-request="customRequest"
+      >
+        <template #upload-button>
+          <div
+            :class="`arco-upload-list-item${
+              file && file.status === 'error'
+                ? ' arco-upload-list-item-error'
+                : ''
+            }`"
+          >
+            <div
+              class="arco-upload-list-picture custom-upload-avatar"
+              v-if="file && file.url"
+            >
+              <img :src="file.url" />
+              <div class="arco-upload-list-picture-mask">
+                <IconEdit />
+              </div>
+              <a-progress
+                v-if="file.status === 'uploading' && file.percent < 100"
+                :percent="file.percent"
+                type="circle"
+                size="mini"
+                :style="{
+                  position: 'absolute',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translateX(-50%) translateY(-50%)',
+                }"
+              />
+            </div>
+            <div class="arco-upload-picture-card" v-else>
+              <div class="arco-upload-picture-card-text">
+                <IconPlus />
+                <div style="margin-top: 10px; font-weight: 600">上传</div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </a-upload>
+    </a-space>
+  </template>
+  
+  <script setup lang="ts">
+  import { IconEdit, IconPlus } from "@arco-design/web-vue/es/icon";
+  import { ref, withDefaults, defineProps } from "vue";
+  import { uploadFileUsingPost } from "@/api/fileController";
+  import { Message } from "@arco-design/web-vue";
+  
+  /**
+   * 定义组件属性类型
+   */
+  interface Props {
+    biz: string;
+    onChange?: (url: string) => void;
+    value?: string;
+  }
+  
+  /**
+   * 给组件指定初始值
+   */
+  const props = withDefaults(defineProps<Props>(), {
+    value: () => "",
+  });
+  
+  const file = ref();
+  if (props.value) {
+    file.value = {
+      url: props.value,
+      percent: 100,
+      status: "done",
+    };
+  }
+  
+  // 自定义请求
+  const customRequest = async (option: any) => {
+    const { onError, onSuccess, fileItem } = option;
+  
+    const res: any = await uploadFileUsingPost(
+      { biz: props.biz },
+      {},
+      fileItem.file
+    );
+    if (res.data.code === 0 && res.data.data) {
+      const url = res.data.data;
+      file.value = {
+        name: fileItem.name,
+        file: fileItem.file,
+        url,
+      };
+      props.onChange?.(url);
+      onSuccess();
+      console.log(file.value);
+    } else {
+      Message.error("上传失败，" + res.data.message || "");
+      onError(new Error(res.data.message));
+    }
+  };
+  </script>
+  
+  ```
+
+  
 
 
 
