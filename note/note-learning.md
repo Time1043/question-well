@@ -14,7 +14,7 @@
 
 - Reference
 
-  [yupi github](https://github.com/liyupi/yudada), [yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y), [yupi note code-nav](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=), [yupi note code-nav](https://www.code-nav.cn/course/1790274408835506178),  
+  [yupi github](https://github.com/liyupi/yudada), [yupi note](https://bcdh.yuque.com/staff-wpxfif/resource/tllk10dnzp6g3q3y), [yupi note code-nav](https://www.code-nav.cn/course/1782335162700775426/section/1788149836286005250?type=), [yupi note code-nav](https://www.code-nav.cn/course/1790274408835506178),  [Bug fix manual](https://www.code-nav.cn/course/1782294507593015298), 
   
   [zhipuAI](https://open.bigmodel.cn/), [xunfei spark](https://xinghuo.xfyun.cn/sparkapi), [Yu Smart](https://www.yucongming.com/), 
   
@@ -2998,7 +2998,7 @@
 - 具体页面的使用
 
   ```typescript
-
+  
   import { useLoginUserStore } from "@/store/userStore";
   
   const loginUserStore = useLoginUserStore();
@@ -3424,6 +3424,420 @@
   ```
 
   
+
+
+
+## 前端页面开发 用户模块
+
+- 页面开放
+
+  注册路由、具体页面
+
+  
+
+
+
+### 用户登录
+
+- 具体页面  [表单组件](https://arco.design/vue/component/form)
+
+  src\views\user\UserLoginPage.vue
+
+  ```vue
+  <template>
+    <div id="userLoginPage">
+      <h2 style="margin-bottom: 16px">用户登录</h2>
+      <a-form
+        :model="form"
+        :style="{ width: '480px', margin: '0 auto' }"
+        label-align="left"
+        auto-label-width
+        @submit="handleSubmit"
+      >
+        <a-form-item field="userAccount" label="账号">
+          <a-input v-model="form.userAccount" placeholder="请输入账号" />
+        </a-form-item>
+        <a-form-item field="userPassword" tooltip="密码不小于 8 位" label="密码">
+          <a-input-password
+            v-model="form.userPassword"
+            placeholder="请输入密码"
+          />
+        </a-form-item>
+        <a-form-item>
+          <div
+            style="
+              display: flex;
+              width: 100%;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <a-button type="primary" html-type="submit" style="width: 120px">
+              登录
+            </a-button>
+            <a-link href="/user/register">新用户注册</a-link>
+          </div>
+        </a-form-item>
+      </a-form>
+      <!--{{ form }}-->
+    </div>
+  </template>
+  
+  <script setup lang="ts">
+  import { reactive } from "vue";
+  import API from "@/api";
+  import { userLoginUsingPost } from "@/api/userController";
+  import { useLoginUserStore } from "@/store/userStore";
+  import message from "@arco-design/web-vue/es/message";
+  import { useRouter } from "vue-router";
+  
+  const loginUserStore = useLoginUserStore();
+  const router = useRouter();
+  
+  const form = reactive({
+    userAccount: "",
+    userPassword: "",
+  } as API.UserLoginRequest);
+  
+  /**
+   * 提交
+   */
+  const handleSubmit = async () => {
+    const res = await userLoginUsingPost(form);
+    if (res.data.code === 0) {
+      await loginUserStore.fetchLoginUser();
+      message.success("登录成功");
+      router.push({
+        path: "/",
+        replace: true,
+      });
+    } else {
+      message.error("登录失败，" + res.data.message);
+    }
+  };
+  </script>
+  
+  ```
+
+  
+
+
+
+### 用户注册
+
+- 具体页面 (在登录页面上改)
+
+  src\views\user\UserRegisterPage.vue
+
+  ```vue
+  <template>
+    <div id="userRegisterPage">
+      <h2 style="margin-bottom: 16px">用户注册</h2>
+      <a-form
+        :model="form"
+        :style="{ width: '480px', margin: '0 auto' }"
+        label-align="left"
+        auto-label-width
+        @submit="handleSubmit"
+      >
+        <a-form-item field="userAccount" label="账号">
+          <a-input v-model="form.userAccount" placeholder="请输入账号" />
+        </a-form-item>
+        <a-form-item field="userPassword" tooltip="密码不小于 8 位" label="密码">
+          <a-input-password
+            v-model="form.userPassword"
+            placeholder="请输入密码"
+          />
+        </a-form-item>
+        <a-form-item
+          field="checkPassword"
+          tooltip="确认密码不小于 8 位"
+          label="确认密码"
+        >
+          <a-input-password
+            v-model="form.checkPassword"
+            placeholder="请输入确认密码"
+          />
+        </a-form-item>
+        <a-form-item>
+          <div
+            style="
+              display: flex;
+              width: 100%;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            <a-button type="primary" html-type="submit" style="width: 120px">
+              注册
+            </a-button>
+            <a-link href="/user/login">老用户登录</a-link>
+          </div>
+        </a-form-item>
+      </a-form>
+    </div>
+  </template>
+  
+  <script setup lang="ts">
+  import { reactive } from "vue";
+  import API from "@/api";
+  import { userRegisterUsingPost } from "@/api/userController";
+  import message from "@arco-design/web-vue/es/message";
+  import { useRouter } from "vue-router";
+  
+  const router = useRouter();
+  
+  const form = reactive({
+    userAccount: "",
+    userPassword: "",
+    checkPassword: "",
+  } as API.UserRegisterRequest);
+  
+  /**
+   * 提交
+   */
+  const handleSubmit = async () => {
+    const res = await userRegisterUsingPost(form);
+    if (res.data.code === 0) {
+      message.success("注册成功");
+      router.push({
+        path: "/user/login",
+        replace: true,
+      });
+    } else {
+      message.error("注册失败，" + res.data.message);
+    }
+  };
+  </script>
+  
+  ```
+
+  
+
+
+
+### 用户管理
+
+- 具体页面 
+
+  src\views\admin\AdminUserPage.vue
+
+  搜索表单 + 提交按钮、
+
+  [表格组件](https://arco.design/react/components/table) (列名展示 删除操作)、分页
+
+  头像渲染图片 (插槽)、[图片组件](https://arco.design/react/components/image)
+
+  ```vue
+  <template>
+    <!-- 搜索表单 -->
+    <a-form
+      :model="formSearchParams"
+      :style="{ marginBottom: '20px' }"
+      layout="inline"
+      @submit="doSearch"
+    >
+      <a-form-item field="userName" label="用户名">
+        <a-input
+          allow-clear
+          v-model="formSearchParams.userName"
+          placeholder="请输入用户名"
+        />
+      </a-form-item>
+      <a-form-item field="userProfile" label="用户简介">
+        <a-input
+          allow-clear
+          v-model="formSearchParams.userProfile"
+          placeholder="请输入用户简介"
+        />
+      </a-form-item>
+      <a-form-item>
+        <a-button type="primary" html-type="submit" style="width: 100px">
+          搜索
+        </a-button>
+      </a-form-item>
+    </a-form>
+  
+    <!-- 表格展示 -->
+    <a-table
+      :columns="columns"
+      :data="dataList"
+      :pagination="{
+        showTotal: true,
+        pageSize: searchParams.pageSize,
+        current: searchParams.current,
+        total,
+      }"
+      @page-change="onPageChange"
+    >
+      <template #userAvatar="{ record }">
+        <a-image width="64" :src="record.userAvatar" />
+      </template>
+      <template #createTime="{ record }">
+        {{ dayjs(record.createTime).format("YYYY-MM-DD HH:mm:ss") }}
+      </template>
+      <template #updateTime="{ record }">
+        {{ dayjs(record.updateTime).format("YYYY-MM-DD HH:mm:ss") }}
+      </template>
+      <template #optional="{ record }">
+        <a-space>
+          <a-button status="danger" @click="doDelete(record)">删除</a-button>
+        </a-space>
+      </template>
+    </a-table>
+  </template>
+  
+  <script setup lang="ts">
+  import { ref, watchEffect } from "vue";
+  import {
+    deleteUserUsingPost,
+    listUserByPageUsingPost,
+  } from "@/api/userController";
+  import API from "@/api";
+  import message from "@arco-design/web-vue/es/message";
+  import { dayjs } from "@arco-design/web-vue/es/_utils/date";
+  
+  const formSearchParams = ref<API.UserQueryRequest>({});
+  
+  // 初始化搜索条件（不应该被修改）
+  const initSearchParams = {
+    current: 1,
+    pageSize: 10,
+  };
+  
+  const searchParams = ref<API.UserQueryRequest>({
+    ...initSearchParams,
+  });
+  const dataList = ref<API.User[]>([]);
+  const total = ref<number>(0);
+  
+  /**
+   * 加载数据 (刚进入页面 数据发生变化 - 监听函数)
+   */
+  const loadData = async () => {
+    const res = await listUserByPageUsingPost(searchParams.value);
+    if (res.data.code === 0) {
+      dataList.value = res.data.data?.records || [];
+      total.value = res.data.data?.total || 0;
+    } else {
+      message.error("获取数据失败，" + res.data.message);
+    }
+  };
+  
+  /**
+   * 执行搜索
+   */
+  const doSearch = () => {
+    searchParams.value = {
+      ...initSearchParams,
+      ...formSearchParams.value,
+    };
+  };
+  
+  /**
+   * 当分页变化时，改变搜索条件，触发数据加载
+   * @param page
+   */
+  const onPageChange = (page: number) => {
+    searchParams.value = {
+      ...searchParams.value,
+      current: page,
+    };
+  };
+  
+  /**
+   * 删除
+   * @param record
+   */
+  const doDelete = async (record: API.User) => {
+    if (!record.id) {
+      return;
+    }
+  
+    const res = await deleteUserUsingPost({
+      id: record.id,
+    });
+    if (res.data.code === 0) {
+      loadData();
+    } else {
+      message.error("删除失败，" + res.data.message);
+    }
+  };
+  
+  /**
+   * 监听 searchParams 变量，改变时触发数据的重新加载
+   */
+  watchEffect(() => {
+    loadData();
+  });
+  
+  // 表格列配置
+  const columns = [
+    {
+      title: "id",
+      dataIndex: "id",
+    },
+    {
+      title: "账号",
+      dataIndex: "userAccount",
+    },
+    {
+      title: "用户名",
+      dataIndex: "userName",
+    },
+    {
+      title: "用户头像",
+      dataIndex: "userAvatar",
+      slotName: "userAvatar",
+    },
+    {
+      title: "用户简介",
+      dataIndex: "userProfile",
+    },
+    {
+      title: "权限",
+      dataIndex: "userRole",
+    },
+    {
+      title: "创建时间",
+      dataIndex: "createTime",
+      slotName: "createTime",
+    },
+    {
+      title: "更新时间",
+      dataIndex: "updateTime",
+      slotName: "updateTime",
+    },
+    {
+      title: "操作",
+      slotName: "optional",
+    },
+  ];
+  </script>
+  
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 前端页面开发 管理页面
+
+
+
+
+
+
 
 
 

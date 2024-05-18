@@ -6,22 +6,61 @@ INSERT INTO user (id, userAccount, userPassword, unionId, mpOpenId, userName, us
                   createTime, updateTime, isDelete)
 VALUES (1, 'yupi', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
         'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (2, 'yupi2', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (3, 'yupi3', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (4, 'yupi4', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (5, 'yupi5', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (6, 'yupi6', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (7, 'yupi7', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (8, 'yupi8', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (9, 'yupi9', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (10, 'yupi10', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (11, 'yupi11', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (12, 'yupi12', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
+        '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0),
+       (13, 'yupi13', 'b0dd3697a192885d7c055db46155b26a', null, null, '鱼皮',
+        'https://k.sinaimg.cn/n/sinakd20110/560/w1080h1080/20230930/915d-f3d7b580c33632b191e19afa0a858d31.jpg/w700d1q75cms.jpg',
         '欢迎来编程导航学习', 'admin', '2024-05-09 11:13:13', '2024-05-09 15:07:48', 0);
 
 -- 应用表初始数据
 INSERT INTO app (id, appName, appDesc, appIcon, appType, scoringStrategy, reviewStatus, reviewMessage, reviewerId,
                  reviewTime, userId, createTime, updateTime, isDelete)
-VALUES (1, '自定义MBTI性格测试', '测试性格', '11', 1, 0, 1, null, null, null, 1, '2024-04-24 15:58:05', '2024-05-09 15:09:53', 0);
+VALUES (1, '自定义MBTI性格测试', '测试性格', '11', 1, 0, 1, null, null, null, 1, '2024-04-24 15:58:05',
+        '2024-05-09 15:09:53', 0);
 INSERT INTO app (id, appName, appDesc, appIcon, appType, scoringStrategy, reviewStatus, reviewMessage, reviewerId,
                  reviewTime, userId, createTime, updateTime, isDelete)
-VALUES (2, '自定义得分测试', '测试得分', '22', 0, 0, 1, null, null, null, 1, '2024-04-25 11:39:30', '2024-05-09 15:09:53', 0);
+VALUES (2, '自定义得分测试', '测试得分', '22', 0, 0, 1, null, null, null, 1, '2024-04-25 11:39:30',
+        '2024-05-09 15:09:53', 0);
 INSERT INTO app (id, appName, appDesc, appIcon, appType, scoringStrategy, reviewStatus, reviewMessage, reviewerId,
                  reviewTime, userId, createTime, updateTime, isDelete)
 VALUES (3, 'AI MBTI 性格测试', '快来测测你的 MBTI', '11', 1, 1, 1, null, null, null, 1, '2024-04-26 16:38:12',
         '2024-05-09 15:09:53', 0);
 INSERT INTO app (id, appName, appDesc, appIcon, appType, scoringStrategy, reviewStatus, reviewMessage, reviewerId,
                  reviewTime, userId, createTime, updateTime, isDelete)
-VALUES (4, 'AI 得分测试', '看看你熟悉多少首都', '22', 0, 1, 1, null, null, null, 1, '2024-04-26 16:38:56', '2024-05-09 15:09:53', 0);
+VALUES (4, 'AI 得分测试', '看看你熟悉多少首都', '22', 0, 1, 1, null, null, null, 1, '2024-04-26 16:38:56',
+        '2024-05-09 15:09:53', 0);
 
 -- 题目表初始数据
 INSERT INTO question (id, questionContent, appId, userId, createTime, updateTime, isDelete)
@@ -121,10 +160,12 @@ VALUES (19, '继续加油！', '还需努力哦', null, null, 0, '2024-04-25 15:
 
 -- 用户回答表初始数据
 INSERT INTO user_answer (id, appId, appType, choices, resultId, resultName, resultDesc, resultPicture, resultScore,
-                              scoringStrategy, userId, createTime, updateTime, isDelete)
-VALUES (1, 1, 1, '["A","A","A","B","A","A","A","B","B","A"]', 1, 'ISTJ（物流师）', '忠诚可靠，被公认为务实，注重细节。', 'icon_url_istj',
+                         scoringStrategy, userId, createTime, updateTime, isDelete)
+VALUES (1, 1, 1, '["A","A","A","B","A","A","A","B","B","A"]', 1, 'ISTJ（物流师）', '忠诚可靠，被公认为务实，注重细节。',
+        'icon_url_istj',
         null, 0, 1, '2024-05-09 15:08:22', '2024-05-09 15:10:13', 0);
 INSERT INTO user_answer (id, appId, appType, choices, resultId, resultName, resultDesc, resultPicture, resultScore,
-                              scoringStrategy, userId, createTime, updateTime, isDelete)
-VALUES (2, 2, 0, '["D","C","B","D","A","C","C","B","C","A"]', 17, '首都知识大师', '你真棒棒哦，首都知识非常出色！', null, 10, 0, 1,
+                         scoringStrategy, userId, createTime, updateTime, isDelete)
+VALUES (2, 2, 0, '["D","C","B","D","A","C","C","B","C","A"]', 17, '首都知识大师', '你真棒棒哦，首都知识非常出色！', null,
+        10, 0, 1,
         '2024-05-09 15:08:36', '2024-05-09 15:10:13', 0);

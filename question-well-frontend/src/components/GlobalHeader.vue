@@ -26,14 +26,14 @@
     </a-col>
 
     <!-- grid: login button -->
-    <a-col flex="100px">
+    <a-col flex="120px">
       <div v-if="loginUserStore.loginUser.id">
-        <a-button type="text">
+        <a-button type="outline">
           {{ loginUserStore.loginUser.userName ?? "Nameless" }}
         </a-button>
       </div>
       <div v-else>
-        <a-button type="primary" href="/user/login">Login</a-button>
+        <a-button type="primary" href="/user/login">登录</a-button>
       </div>
     </a-col>
   </a-row>
